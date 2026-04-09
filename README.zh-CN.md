@@ -1,10 +1,10 @@
-# Coide
+# coide-beta
 
-本项目基于 [vicmaster/coide](https://github.com/vicmaster/coide) 修改，属于适配 Windows 版本的衍生项目。
+本项目基于 [vicmaster/coide](https://github.com/vicmaster/coide) 修改，当前作为 `coide-beta` 维护，属于面向 Windows 的衍生版本。
 
 一个面向 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 的桌面 GUI 客户端，对你已经在使用的 CLI 做了一层图形界面封装。使用相同账号、相同订阅，无需 API Key。
 
-项目基于 Electron、React 和 TypeScript 构建。通过 `node-pty` 与 Claude 通信，为其提供真实的 TTY 环境，因此行为与终端中完全一致，只是在其上增加了更完善的 UI。
+项目基于 Electron、React 和 TypeScript 构建。当前分支保留了本地已安装 Claude Code / SDK 相关集成路径，并在其上增加了更完善的桌面 UI。
 
 ## 功能特性
 
@@ -15,6 +15,7 @@
 - 为每个会话选择工作目录
 - 编辑并重新运行历史消息
 - 复制整段对话或单条回复
+- 中文优先界面，支持应用内中英切换
 - 键盘快捷键（Cmd+K 清空、Cmd+N 新建会话、Cmd+[/] 切换、Esc 停止）
 
 **工具调用与权限**
@@ -47,19 +48,20 @@
 - 会话内搜索，支持匹配高亮
 - 智能自动滚动与一键跳转到底部
 - 桌面通知
-- 深色主题，macOS 原生风格标题栏
+- 已添加兼容 OpenAI API 格式的第三方供应商设置界面
+- 深色主题桌面 UI
 
 ## 前置要求
 
 - 已安装并完成认证的 [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)
 - Node.js 20+
-- macOS（主要目标平台，Linux / Windows 可能需要额外调整后可运行）
+- Windows 10 / 11（本分支主要目标平台）
 
 ## 安装与初始化
 
 ```bash
 git clone https://github.com/vicmaster/coide.git
-cd coide
+cd coide-beta
 npm install
 npx electron-rebuild -f -w node-pty
 ```
@@ -76,6 +78,26 @@ npm run dev
 npm run build      # 编译 TypeScript 并打包
 npm run package    # 构建并生成可分发产物
 ```
+
+## Windows 打包
+
+本分支当前通过 `electron-builder` 支持 Windows 打包。
+
+```bash
+npm run package:win             # 生成便携版
+npm run package:win:installer   # 生成 NSIS 安装版 .exe
+npm run package:win:all         # 同时生成便携版和 NSIS 安装版
+```
+
+当前已验证的 NSIS 安装包输出路径：
+
+```text
+dist/Coide-0.12.0-x64.exe
+```
+
+说明：
+- 默认情况下安装包未签名，如需消除 Windows 签名提示，需要额外配置代码签名。
+- 为避免升级后因旧配置语言值导致渲染层黑屏，项目已兼容并自动归一化历史语言值，如 `Chinese`、`中文`。
 
 ## 架构
 

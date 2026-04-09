@@ -1,10 +1,10 @@
-# Coide
+# coide-beta
 
-This project is a Windows-adapted version of [vicmaster/coide](https://github.com/vicmaster/coide), modified from the original project for Windows support.
+This project is a Windows-adapted fork of [vicmaster/coide](https://github.com/vicmaster/coide), maintained as `coide-beta`.
 
 A desktop GUI client for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that wraps the CLI you already use — same account, same subscription, no API key needed.
 
-Built with Electron, React, and TypeScript. Talks to Claude through `node-pty`, giving it a real TTY so everything works exactly like the terminal, but with a proper UI on top.
+Built with Electron, React, and TypeScript. The current desktop app keeps the Claude Code integration path aligned to the installed local Claude Code / SDK workflow used by this fork, while still providing a full desktop UI on top.
 
 ## Features
 
@@ -15,6 +15,7 @@ Built with Electron, React, and TypeScript. Talks to Claude through `node-pty`, 
 - Working directory picker per session
 - Edit and re-run past messages
 - Copy conversation or individual responses
+- Chinese-first UI with in-app Chinese / English switching
 - Keyboard shortcuts (Cmd+K clear, Cmd+N new session, Cmd+[/] switch, Esc stop)
 
 **Tool Calls & Permissions**
@@ -47,19 +48,20 @@ Built with Electron, React, and TypeScript. Talks to Claude through `node-pty`, 
 - In-session search with match highlighting
 - Jump-to-bottom with smart auto-scroll
 - Desktop notifications
-- Dark theme, macOS-native title bar
+- Third-party provider settings UI for OpenAI-compatible APIs
+- Dark theme desktop UI
 
 ## Prerequisites
 
 - [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and authenticated
 - Node.js 20+
-- macOS (primary target — may work on Linux/Windows with adjustments)
+- Windows 10/11 (primary target for this fork)
 
 ## Setup
 
 ```bash
 git clone https://github.com/vicmaster/coide.git
-cd coide
+cd coide-beta
 npm install
 npx electron-rebuild -f -w node-pty
 ```
@@ -76,6 +78,26 @@ npm run dev
 npm run build      # compile TypeScript + bundle
 npm run package    # build + create distributable
 ```
+
+## Windows Packaging
+
+This fork currently supports Windows packaging through `electron-builder`.
+
+```bash
+npm run package:win             # portable build
+npm run package:win:installer   # NSIS installer (.exe)
+npm run package:win:all         # portable + NSIS
+```
+
+Latest verified NSIS installer output:
+
+```text
+dist/Coide-0.12.0-x64.exe
+```
+
+Notes:
+- The NSIS installer is unsigned by default unless Windows code-signing is configured.
+- Existing legacy language values such as `Chinese` / `中文` are normalized to `zh` at runtime to avoid renderer startup failures after upgrading settings.
 
 ## Architecture
 
