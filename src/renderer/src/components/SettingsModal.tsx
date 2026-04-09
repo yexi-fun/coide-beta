@@ -181,9 +181,6 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
           <div className="mb-7 pr-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/35">Preferences</p>
             <h2 className="mt-2 text-xl font-semibold tracking-tight text-white/92">Settings</h2>
-            <p className="mt-2 text-xs leading-5 text-white/32">
-              Configure runtime behavior, workspace defaults, and provider access.
-            </p>
           </div>
           <nav className="space-y-2">
             <SidebarItem
@@ -339,6 +336,23 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                         { value: 'high', label: 'High' }
                       ]}
                     />
+                  </SettingRow>
+
+                  <SettingRow label="Language">
+                    <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
+                      <button
+                        type="button"
+                        className="px-3 py-1 text-xs text-white/80 bg-white/[0.1] transition-colors"
+                      >
+                        中文
+                      </button>
+                      <button
+                        type="button"
+                        className="px-3 py-1 text-xs text-white/30 transition-colors hover:text-white/50"
+                      >
+                        English
+                      </button>
+                    </div>
                   </SettingRow>
                 </>
               )}
