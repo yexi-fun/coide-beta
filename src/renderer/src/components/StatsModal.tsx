@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useState } from 'react'
 import { useSessionsStore, type SessionUsage } from '../store/sessions'
 import { useSettingsStore } from '../store/settings'
 import { useRateLimitStore, type RateLimitWindow } from '../store/rateLimit'
+import { useI18n } from '../utils/i18n'
 
 function formatTokens(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + 'M'
@@ -43,6 +44,7 @@ function StatRow({ label, value, color }: { label: string; value: string; color?
 }
 
 function RateLimitRow({ window: w, now }: { window: RateLimitWindow; now: number }): React.JSX.Element {
+  const { t } = useI18n()
   const isThrottled = w.status !== 'allowed'
   const resetsInMs = w.resetsAt * 1000 - now
   const totalWindowMs = w.rateLimitType === 'five_hour' ? 5 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000
@@ -50,14 +52,14 @@ function RateLimitRow({ window: w, now }: { window: RateLimitWindow; now: number
   const pct = isThrottled ? 100 : Math.min(Math.max((elapsed / totalWindowMs) * 100, 0), 100)
   const barColor = isThrottled || pct > 90 ? 'bg-red-500/70' : pct > 70 ? 'bg-yellow-500/60' : 'bg-blue-500/60'
   const valColor = isThrottled || pct > 90 ? 'text-red-400/80' : pct > 70 ? 'text-amber-400/70' : 'text-blue-400/60'
-  const label = w.rateLimitType === 'five_hour' ? '5-hour window' : '7-day window'
+  const label = w.rateLimitType === 'five_hour' ? t('stats_window_5h') : t('stats_window_7d')
 
   return (
     <div className="space-y-1.5 py-1">
       <div className="flex justify-between items-center">
         <span className="text-[11px] text-white/40">{label}</span>
         <span className={`text-[11px] font-mono ${valColor}`}>
-          {isThrottled ? 'THROTTLED' : `resets ${formatResetTime(w.resetsAt, now)}`}
+          {isThrottled ? t('stats_throttled') : t('stats_resets_in', { time: formatResetTime(w.resetsAt, now) })}
         </span>
       </div>
       <div className="h-1.5 w-full rounded-full bg-white/[0.07]">
@@ -68,6 +70,7 @@ function RateLimitRow({ window: w, now }: { window: RateLimitWindow; now: number
 }
 
 export default function StatsModal({ onClose }: { onClose: () => void }): React.JSX.Element {
+  const { t } = useI18n()
   const session = useSessionsStore((s) => {
     const active = s.sessions.find((sess) => sess.id === s.activeSessionId)
     return active ?? null
@@ -110,7 +113,7 @@ export default function StatsModal({ onClose }: { onClose: () => void }): React.
       <div className="w-full max-w-sm rounded-2xl bg-[#141414] border border-white/[0.1] p-5 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/90">Session Stats</h2>
+          <h2 className="text-sm font-semibold text-white/90">{t('stats_title')}</h2>
           <button
             onClick={onClose}
             className="text-white/30 hover:text-white/60 transition-colors text-lg leading-none"
@@ -121,21 +124,21 @@ export default function StatsModal({ onClose }: { onClose: () => void }): React.
 
         {/* Session info */}
         <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">Session</p>
-          <StatRow label="Model" value={model} color="text-white/80" />
-          {effort && <StatRow label="Effort" value={effort} color="text-violet-400/70" />}
-          <StatRow label="Duration" value={formatDuration(duration)} />
-          <StatRow label="Messages" value={String(messageCount)} />
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">{t('stats_session')}</p>
+          <StatRow label={t('stats_model')} value={model} color="text-white/80" />
+          {effort && <StatRow label={t('stats_effort')} value={effort} color="text-violet-400/70" />}
+          <StatRow label={t('stats_duration')} value={formatDuration(duration)} />
+          <StatRow label={t('stats_messages')} value={String(messageCount)} />
           {session?.claudeSessionId && (
-            <StatRow label="Session ID" value={session.claudeSessionId.slice(0, 12)} color="text-white/40" />
+            <StatRow label={t('stats_session_id')} value={session.claudeSessionId.slice(0, 12)} color="text-white/40" />
           )}
         </div>
 
         {/* Token usage */}
         <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3 mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">Token Usage</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">{t('stats_token_usage')}</p>
           <div className="flex justify-between items-center mb-2">
-            <span className="text-[11px] text-white/40">Context</span>
+            <span className="text-[11px] text-white/40">{t('stats_context')}</span>
             <span className="text-[11px] font-mono text-white/70">{formatTokens(totalTokens)} / 1M</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-white/[0.07] mb-2">
@@ -146,12 +149,12 @@ export default function StatsModal({ onClose }: { onClose: () => void }): React.
               style={{ width: `${contextPct}%` }}
             />
           </div>
-          <StatRow label="Input" value={formatTokens(usage.inputTokens)} />
-          <StatRow label="Output" value={formatTokens(usage.outputTokens)} />
-          {usage.cacheReadTokens > 0 && <StatRow label="Cache read" value={formatTokens(usage.cacheReadTokens)} />}
-          {usage.cacheCreationTokens > 0 && <StatRow label="Cache write" value={formatTokens(usage.cacheCreationTokens)} />}
+          <StatRow label={t('stats_input')} value={formatTokens(usage.inputTokens)} />
+          <StatRow label={t('stats_output')} value={formatTokens(usage.outputTokens)} />
+          {usage.cacheReadTokens > 0 && <StatRow label={t('stats_cache_read')} value={formatTokens(usage.cacheReadTokens)} />}
+          {usage.cacheCreationTokens > 0 && <StatRow label={t('stats_cache_write')} value={formatTokens(usage.cacheCreationTokens)} />}
           <div className="border-t border-white/[0.06] mt-1 pt-1">
-            <StatRow label="Estimated cost" value={`$${cost < 0.01 ? cost.toFixed(4) : cost.toFixed(2)}`} color="text-green-400/70" />
+            <StatRow label={t('stats_estimated_cost')} value={`$${cost < 0.01 ? cost.toFixed(4) : cost.toFixed(2)}`} color="text-green-400/70" />
           </div>
         </div>
 
@@ -162,7 +165,7 @@ export default function StatsModal({ onClose }: { onClose: () => void }): React.
               ? 'border-red-500/20 bg-red-500/[0.04]'
               : 'border-white/[0.06] bg-white/[0.03]'
           }`}>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">Rate Limit</p>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20 mb-2">{t('stats_rate_limit')}</p>
             {rateLimitEntries.map((w) => (
               <RateLimitRow key={w.rateLimitType} window={w} now={now} />
             ))}

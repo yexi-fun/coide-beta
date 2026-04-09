@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useSessionsStore, type Session, type TextMessage } from '../store/sessions'
+import { getLocale, useI18n } from '../utils/i18n'
 
 type SearchResult = {
   session: Session
@@ -57,19 +58,19 @@ function searchSessions(sessions: Session[], query: string): SearchResult[] {
   return results
 }
 
-function relativeTime(timestamp: number): string {
+function relativeTime(timestamp: number, language: 'zh' | 'en'): string {
   const now = Date.now()
   const diff = now - timestamp
   const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 1) return language === 'zh' ? '刚刚' : 'just now'
+  if (mins < 60) return language === 'zh' ? `${mins} 分钟前` : `${mins}m ago`
   const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return language === 'zh' ? `${hours} 小时前` : `${hours}h ago`
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
+  if (days < 7) return language === 'zh' ? `${days} 天前` : `${days}d ago`
   const weeks = Math.floor(days / 7)
-  if (weeks < 5) return `${weeks}w ago`
-  return new Date(timestamp).toLocaleDateString()
+  if (weeks < 5) return language === 'zh' ? `${weeks} 周前` : `${weeks}w ago`
+  return new Date(timestamp).toLocaleDateString(getLocale(language))
 }
 
 function HighlightedText({ text, matchIndex, matchLength }: { text: string; matchIndex: number; matchLength: number }): React.JSX.Element {
@@ -87,6 +88,7 @@ function HighlightedText({ text, matchIndex, matchLength }: { text: string; matc
 }
 
 export default function SessionSearch(): React.JSX.Element | null {
+  const { language, t } = useI18n()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -204,7 +206,7 @@ export default function SessionSearch(): React.JSX.Element | null {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search sessions..."
+            placeholder={t('session_search_placeholder')}
             className="flex-1 bg-transparent text-sm text-white/90 placeholder-white/25 outline-none"
           />
           <kbd className="text-[10px] text-white/20 border border-white/[0.08] rounded px-1.5 py-0.5 font-mono">
@@ -216,8 +218,8 @@ export default function SessionSearch(): React.JSX.Element | null {
         <div ref={listRef} className="overflow-y-auto" style={{ maxHeight: '60vh' }}>
           {results.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-1">
-              <p className="text-sm text-white/25">No sessions found</p>
-              <p className="text-xs text-white/15">Try a different search term</p>
+              <p className="text-sm text-white/25">{t('session_search_none')}</p>
+              <p className="text-xs text-white/15">{t('session_search_try_other')}</p>
             </div>
           ) : (
             results.map((result, i) => (
@@ -240,7 +242,7 @@ export default function SessionSearch(): React.JSX.Element | null {
                     )}
                   </p>
                   <span className="text-[10px] text-white/20 shrink-0">
-                    {relativeTime(result.session.createdAt)}
+                    {relativeTime(result.session.createdAt, language)}
                   </span>
                 </div>
                 <p className="text-[10px] text-white/25 mt-0.5 font-mono">

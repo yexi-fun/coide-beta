@@ -5,6 +5,7 @@ import RightPanel from './components/RightPanel'
 import SessionSearch from './components/SessionSearch'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useSessionsStore } from './store/sessions'
+import { useI18n } from './utils/i18n'
 
 // Lazy-load heavy components — TerminalPanel (~6.1 MB xterm), modals with Monaco
 const TerminalPanel = React.lazy(() => import('./components/TerminalPanel'))
@@ -14,6 +15,7 @@ const HookEditorModal = React.lazy(() => import('./components/HookEditorModal'))
 const WelcomeModal = React.lazy(() => import('./components/WelcomeModal'))
 
 export default function App(): React.JSX.Element {
+  const { t } = useI18n()
   const [rightPanelOpen, setRightPanelOpen] = useState(true)
   const [terminalOpen, setTerminalOpen] = useState(false)
   const [terminalHeight, setTerminalHeight] = useState(250)
@@ -95,7 +97,7 @@ export default function App(): React.JSX.Element {
               className="h-[3px] cursor-row-resize hover:bg-blue-500/30 transition-colors"
             />
             <div style={{ height: terminalHeight }} className="min-h-0 flex-shrink-0">
-              <Suspense fallback={<div className="flex items-center justify-center h-full text-white/20 text-xs">Loading terminal…</div>}>
+              <Suspense fallback={<div className="flex items-center justify-center h-full text-white/20 text-xs">{t('app_loading_terminal')}</div>}>
                 <TerminalPanel cwd={cwd} />
               </Suspense>
             </div>

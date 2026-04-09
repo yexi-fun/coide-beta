@@ -5,6 +5,7 @@ import SlashAutocomplete, { useSlashItems, type AutocompleteItem } from './Slash
 import AtMentionAutocomplete, { useAtMentionItems, type MentionItem } from './AtMentionAutocomplete'
 import HistorySearch, { type HistoryItem } from './HistorySearch'
 import { useLoopsStore } from '../store/loops'
+import { useI18n } from '../utils/i18n'
 
 const SUPPORTED_TYPES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp']
 
@@ -15,6 +16,7 @@ type ChatInputProps = {
 }
 
 export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProps): React.JSX.Element {
+  const { t } = useI18n()
   const [input, setInput] = useState('')
   const [stagedImages, setStagedImages] = useState<ImageAttachment[]>([])
   const [stagedFiles, setStagedFiles] = useState<FileAttachment[]>([])
@@ -143,52 +145,52 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
       case 'restart':
         window.api.claude.abort(sid)
         useSessionsStore.getState().restartSession(sid)
-        addInfo('Session restarted. MCP servers will reconnect on the next message.')
+        addInfo(t('input_session_restarted'))
         break
       case 'help':
         addInfo(
-          `**Available commands:**\n\n` +
-          `| Command | Description |\n|---|---|\n` +
-          `| /clear | Clear conversation history |\n` +
-          `| /status | Show session status |\n` +
-          `| /cost | Show token usage |\n` +
-          `| /help | Show this help |\n` +
-          `| /compact | Compact conversation context |\n` +
-          `| /restart | Restart Claude session (reconnects MCP servers) |\n` +
-          `| /init | Initialize project with CLAUDE.md |\n` +
-          `| /review | Review recent changes |\n` +
-          `| /pr-review | Review a pull request |\n` +
-          `| /doctor | Check Claude Code health |\n` +
-          `| /memory | Edit CLAUDE.md memory |\n\n` +
-          `Skills are also available — type \`/\` to see them.`
+          `**${t('input_available_commands')}:**\n\n` +
+          `| Command | ${t('input_command_description')} |\n|---|---|\n` +
+          `| /clear | ${t('input_help_clear')} |\n` +
+          `| /status | ${t('input_help_status')} |\n` +
+          `| /cost | ${t('input_help_cost')} |\n` +
+          `| /help | ${t('input_help_help')} |\n` +
+          `| /compact | ${t('input_help_compact')} |\n` +
+          `| /restart | ${t('input_help_restart')} |\n` +
+          `| /init | ${t('input_help_init')} |\n` +
+          `| /review | ${t('input_help_review')} |\n` +
+          `| /pr-review | ${t('input_help_pr_review')} |\n` +
+          `| /doctor | ${t('input_help_doctor')} |\n` +
+          `| /memory | ${t('input_help_memory')} |\n\n` +
+          t('input_skills_hint')
         )
         break
       case 'status':
         addInfo(
-          `**Session status**\n\n` +
+          `**${t('input_status_title')}**\n\n` +
           `- **CWD:** \`${session.cwd}\`\n` +
-          `- **Session ID:** \`${session.claudeSessionId ?? 'not started'}\`\n` +
-          `- **Messages:** ${session.messages.length}\n` +
-          `- **Created:** ${new Date(session.createdAt).toLocaleString()}`
+          `- **${t('stats_session_id')}:** \`${session.claudeSessionId ?? t('input_not_started')}\`\n` +
+          `- **${t('stats_messages')}:** ${session.messages.length}\n` +
+          `- **${t('input_created')}:** ${new Date(session.createdAt).toLocaleString()}`
         )
         break
       case 'cost':
-        addInfo(`**Token usage** — Cost tracking is not yet available in coide. Use \`/stats\` for a detailed overview.`)
+        addInfo(`**${t('stats_token_usage')}** — ${t('input_token_usage_unavailable')}`)
         break
       case 'stats':
         window.dispatchEvent(new CustomEvent('coide:open-stats'))
         break
       case 'compact':
         if (!session.claudeSessionId) {
-          addInfo('No active session to compact. Send a message first.')
+          addInfo(t('input_no_session_compact'))
           break
         }
-        addInfo('Compacting context…')
+        addInfo(t('input_compacting'))
         sendMessage('/compact')
         break
       case 'context':
         if (!session.claudeSessionId) {
-          addInfo('No active session. Send a message first.')
+          addInfo(t('input_no_active_session'))
           break
         }
         sendMessage('/context')
@@ -203,7 +205,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
         const store = useSessionsStore.getState()
         const currentSid = store.activeSessionId
         if (!currentSid) {
-          addInfo('No active session to fork.')
+          addInfo(t('input_no_session_to_fork'))
           break
         }
         const newId = store.forkSession(currentSid)
@@ -212,7 +214,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
           useSessionsStore.getState().addMessage(newId, {
             id: Date.now().toString(),
             role: 'assistant',
-            text: `⑂ Forked from **"${forkInfo?.title ?? 'previous session'}"**. History copied up to this point.\n\nOriginal session is unchanged. The next message starts a fresh Claude session.`
+            text: t('input_forked_from', { title: forkInfo?.title ?? 'previous session' })
           })
         }
         break
@@ -441,7 +443,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
         const base64 = btoa(binary)
         const tempPath = await window.api.claude.saveTempFile(base64, file.name)
         if (!tempPath) {
-          setFileError('Could not read file path')
+          setFileError(t('input_failed_read_path'))
           return
         }
         filePath = tempPath
@@ -465,7 +467,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
         setStagedFiles((prev) => [...prev, result as FileAttachment])
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to attach file'
+      const message = err instanceof Error ? err.message : t('input_failed_attach_file')
       setFileError(message)
       setTimeout(() => setFileError(null), 5000)
     }
@@ -555,8 +557,8 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
       {hasStash && (
         <div className="mb-2 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-2 text-[12px] text-indigo-400/80 flex items-center justify-between">
           <span>
-            <span className="font-medium">Draft stashed</span>
-            <span className="text-indigo-400/50 ml-1">— Ctrl+S to restore</span>
+            <span className="font-medium">{t('input_draft_stashed')}</span>
+            <span className="text-indigo-400/50 ml-1">- {t('input_restore_hint')}</span>
           </span>
           <button
             onClick={() => { stashRef.current = ''; setHasStash(false) }}
@@ -569,26 +571,28 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
       {activeLoop && (
         <div className="mb-2 rounded-lg border border-green-500/20 bg-green-500/10 px-3 py-2 text-[12px] text-green-400/80 flex items-center justify-between">
           <span className="truncate">
-            <span className="font-medium">Loop active:</span>{' '}
+            <span className="font-medium">{t('input_loop_active')}</span>{' '}
             {activeLoop.prompt.slice(0, 40)}{activeLoop.prompt.length > 40 ? '…' : ''}{' '}
             <span className="text-green-400/50">
-              every {activeLoop.intervalMs < 60_000 ? `${activeLoop.intervalMs / 1000}s` : activeLoop.intervalMs < 3_600_000 ? `${activeLoop.intervalMs / 60_000}m` : `${activeLoop.intervalMs / 3_600_000}h`}
-              {' '}— run #{activeLoop.runCount}
-              {activeLoop.skippedCount > 0 && ` (${activeLoop.skippedCount} skipped)`}
+              {t('input_every_run', {
+                interval: activeLoop.intervalMs < 60_000 ? `${activeLoop.intervalMs / 1000}s` : activeLoop.intervalMs < 3_600_000 ? `${activeLoop.intervalMs / 60_000}m` : `${activeLoop.intervalMs / 3_600_000}h`,
+                run: activeLoop.runCount,
+                skipped: activeLoop.skippedCount
+              })}
             </span>
           </span>
           <button
             onClick={() => { if (activeSessionId) useLoopsStore.getState().removeLoop(activeSessionId) }}
             className="text-green-400/40 hover:text-green-400 ml-2 flex-shrink-0 text-[11px] font-medium"
           >
-            Stop
+            {t('chat_stop')}
           </button>
         </div>
       )}
       {queuedMessage && (
         <div className="mb-2 rounded-lg border border-yellow-500/20 bg-yellow-500/10 px-3 py-2 text-[12px] text-yellow-400/80 flex items-center justify-between">
           <span className="truncate">
-            <span className="font-medium">Queued:</span> {queuedMessage.text}
+            <span className="font-medium">{t('input_queued')}</span> {queuedMessage.text}
           </span>
           <button
             onClick={() => {
@@ -644,7 +648,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
       <div className={`flex items-end gap-2 rounded-xl border border-white/[0.08] bg-white/[0.04] focus-within:border-white/[0.15] transition-colors ${compact ? 'px-2.5 py-1.5' : 'px-3 py-2.5'}`}>
         <button
           onClick={pickFiles}
-          title="Attach files"
+          title={t('input_attach_files')}
           className="flex-shrink-0 text-white/25 hover:text-white/50 transition-colors disabled:opacity-25 pb-0.5"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -663,7 +667,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
             })
           }}
           onKeyDown={handleKeyDown}
-          placeholder={isLoading ? 'Type to queue next message…' : 'Message Claude…'}
+          placeholder={isLoading ? t('input_queue_placeholder') : t('input_message_placeholder')}
           rows={1}
           className="flex-1 resize-none bg-transparent text-sm text-white/90 placeholder-white/20 outline-none leading-relaxed"
           style={{ maxHeight: '300px', overflow: 'auto' }}
@@ -675,7 +679,7 @@ export default function ChatInput({ cwd, isLoading, sendMessage }: ChatInputProp
             isLoading ? 'bg-yellow-600 hover:bg-yellow-500' : 'bg-blue-600 hover:bg-blue-500'
           }`}
         >
-          {isLoading ? 'Queue' : 'Send'}
+          {isLoading ? t('input_queue') : t('input_send')}
         </button>
       </div>
     </div>

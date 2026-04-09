@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { type CoideSettings, DEFAULT_SETTINGS, type ThirdPartyProviderSettings } from '../../../shared/types'
+import { type AppLanguage, type CoideSettings, DEFAULT_SETTINGS, type ThirdPartyProviderSettings } from '../../../shared/types'
 
 function normalizeProviders(providers: ThirdPartyProviderSettings[] = []): ThirdPartyProviderSettings[] {
   const merged = providers.map((provider) => ({
@@ -17,6 +17,12 @@ function normalizeProviders(providers: ThirdPartyProviderSettings[] = []): Third
     ...provider,
     enabled: index === enabledIndex
   }))
+}
+
+function normalizeLanguage(language: unknown): AppLanguage {
+  if (language === 'en' || language === 'English') return 'en'
+  if (language === 'zh' || language === 'Chinese' || language === '中文') return 'zh'
+  return DEFAULT_SETTINGS.language
 }
 
 type SettingsStore = CoideSettings & {
@@ -42,6 +48,7 @@ export const useSettingsStore = create<SettingsStore>()(
         if (merged.defaultCwd && (persisted as Record<string, unknown>)?.onboardingComplete === undefined) {
           merged.onboardingComplete = true
         }
+        merged.language = normalizeLanguage((merged as Partial<CoideSettings>).language)
         merged.thirdPartyProviders = normalizeProviders(merged.thirdPartyProviders ?? [])
         return merged
       },

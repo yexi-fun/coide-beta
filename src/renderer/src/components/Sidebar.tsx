@@ -3,10 +3,12 @@ import { useSessionsStore } from '../store/sessions'
 import { useSkillEditorStore } from '../store/skillEditor'
 import { BUILT_IN_COMMANDS } from '../data/commands'
 import WorktreeDialog from './WorktreeDialog'
+import { useI18n } from '../utils/i18n'
 
 type Tab = 'sessions' | 'skills' | 'commands'
 
 export default function Sidebar(): React.JSX.Element {
+  const { t } = useI18n()
   const [activeTab, setActiveTab] = useState<Tab>('sessions')
   const { createSession, activeSessionId } = useSessionsStore()
   const [gitBranch, setGitBranch] = useState('')
@@ -44,7 +46,7 @@ export default function Sidebar(): React.JSX.Element {
         <button
           onClick={() => window.dispatchEvent(new Event('coide:toggle-search'))}
           className="p-1 rounded text-white/25 hover:text-white/60 hover:bg-white/5 transition-colors"
-          title="Search sessions (⇧⌘F)"
+          title={t('sidebar_search_sessions')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
@@ -65,7 +67,7 @@ export default function Sidebar(): React.JSX.Element {
                 : 'text-white/35 hover:text-white/60 hover:bg-white/5'
             }`}
           >
-            {tab}
+            {tab === 'sessions' ? t('sidebar_sessions') : tab === 'skills' ? t('sidebar_skills') : t('sidebar_commands')}
           </button>
         ))}
       </div>
@@ -98,12 +100,12 @@ export default function Sidebar(): React.JSX.Element {
               onClick={handleNewSession}
               className="flex-1 rounded-l-md bg-blue-600/90 hover:bg-blue-600 py-1.5 text-xs font-medium text-white transition-colors"
             >
-              + New Session
+              {t('sidebar_new_session')}
             </button>
             <button
               onClick={handleNewSessionInFolder}
               className="rounded-r-md bg-blue-600/90 hover:bg-blue-600 px-2 py-1.5 text-xs text-white border-l border-blue-500/50 transition-colors"
-              title="New session in different folder"
+              title={t('sidebar_new_session_folder')}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -121,7 +123,7 @@ export default function Sidebar(): React.JSX.Element {
                 <circle cx="6" cy="18" r="3" />
                 <path d="M18 9a9 9 0 0 1-9 9" />
               </svg>
-              Worktree
+              {t('sidebar_worktree')}
             </button>
           )}
         </div>
@@ -144,7 +146,7 @@ export default function Sidebar(): React.JSX.Element {
             onClick={() => useSkillEditorStore.getState().openNew()}
             className="flex-1 rounded-md bg-blue-600/90 hover:bg-blue-600 py-1.5 text-xs font-medium text-white transition-colors"
           >
-            + New
+            {t('sidebar_new')}
           </button>
           <button
             onClick={async () => {
@@ -189,7 +191,7 @@ export default function Sidebar(): React.JSX.Element {
             }}
             className="flex-1 rounded-md border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.08] py-1.5 text-xs font-medium text-white/60 hover:text-white/80 transition-colors"
           >
-            Import
+            {t('sidebar_import')}
           </button>
         </div>
       )}
@@ -206,6 +208,7 @@ function SectionLabel({ label }: { label: string }): React.JSX.Element {
 }
 
 function SessionsList(): React.JSX.Element {
+  const { t } = useI18n()
   const sessions = useSessionsStore((state) => state.sessions)
   const activeSessionId = useSessionsStore((state) => state.activeSessionId)
   const { setActiveSession, deleteSession, renameSession } = useSessionsStore()
@@ -222,15 +225,15 @@ function SessionsList(): React.JSX.Element {
   if (sessions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-1">
-        <p className="text-[11px] text-white/20">No sessions yet</p>
-        <p className="text-[10px] text-white/12">Start typing to begin</p>
+        <p className="text-[11px] text-white/20">{t('sidebar_no_sessions')}</p>
+        <p className="text-[10px] text-white/12">{t('sidebar_start_typing')}</p>
       </div>
     )
   }
 
   return (
     <div>
-      <SectionLabel label="Recent" />
+      <SectionLabel label={t('sidebar_recent')} />
       {sessions.map((session) => (
         <div key={session.id} className="group relative">
           <button
@@ -279,7 +282,7 @@ function SessionsList(): React.JSX.Element {
                 <span className="text-[8px] font-medium text-purple-400/40 flex-shrink-0">wt</span>
               )}
               {session.forkOf && (
-                <span className="text-[9px] font-medium text-white/40 flex-shrink-0" title={`Forked from "${session.forkOf.title}"`}>⑂</span>
+                <span className="text-[9px] font-medium text-white/40 flex-shrink-0" title={t('sidebar_forked_from', { title: session.forkOf.title })}>⑂</span>
               )}
             </div>
           </button>
@@ -289,7 +292,7 @@ function SessionsList(): React.JSX.Element {
               deleteSession(session.id)
             }}
             className="absolute right-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1 text-white/20 hover:text-white/60 transition-all"
-            title="Delete session"
+            title={t('sidebar_delete_session')}
           >
             ×
           </button>
@@ -300,6 +303,7 @@ function SessionsList(): React.JSX.Element {
 }
 
 function SkillsList(): React.JSX.Element {
+  const { t } = useI18n()
   const [skills, setSkills] = useState<{ global: SkillInfo[]; project: SkillInfo[] }>({ global: [], project: [] })
   const [search, setSearch] = useState('')
   const setPendingAction = useSessionsStore((s) => s.setPendingAction)
@@ -357,12 +361,12 @@ function SkillsList(): React.JSX.Element {
         type="text"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Filter skills…"
+        placeholder={t('sidebar_filter_skills')}
         className="w-full rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1.5 text-[11px] text-white/80 placeholder-white/20 outline-none focus:border-white/[0.15]"
       />
       {filteredProject.length > 0 && (
         <div>
-          <SectionLabel label="Project" />
+          <SectionLabel label={t('sidebar_project')} />
           <div className="space-y-1">
             {filteredProject.map((skill) => (
               <SkillRow
@@ -379,7 +383,7 @@ function SkillsList(): React.JSX.Element {
       )}
       {filteredGlobal.length > 0 && (
         <div>
-          <SectionLabel label="Global" />
+          <SectionLabel label={t('sidebar_global')} />
           <div className="space-y-1">
             {filteredGlobal.map((skill) => (
               <SkillRow
@@ -396,7 +400,7 @@ function SkillsList(): React.JSX.Element {
       )}
       {!hasResults && (
         <p className="text-center text-[10px] text-white/20 py-4">
-          {search ? 'No matching skills' : 'No skills found'}
+          {search ? t('sidebar_no_matching_skills') : t('sidebar_no_skills')}
         </p>
       )}
     </div>
@@ -416,6 +420,7 @@ const SkillRow = React.memo(function SkillRow({
   onDelete: (skill: SkillInfo) => void
   onExport: (skill: SkillInfo) => void
 }): React.JSX.Element {
+  const { t } = useI18n()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   return (
@@ -424,18 +429,18 @@ const SkillRow = React.memo(function SkillRow({
         <span className="text-xs font-medium text-white/70">/{skill.name}</span>
         {confirmDelete ? (
           <div className="flex items-center gap-1.5 text-[10px]">
-            <span className="text-white/40">Delete?</span>
+            <span className="text-white/40">{t('sidebar_delete_confirm')}</span>
             <button
               onClick={() => { onDelete(skill); setConfirmDelete(false) }}
               className="text-red-400 hover:text-red-300 transition-colors"
             >
-              Yes
+              {t('sidebar_yes')}
             </button>
             <button
               onClick={() => setConfirmDelete(false)}
               className="text-white/40 hover:text-white/60 transition-colors"
             >
-              No
+              {t('sidebar_no')}
             </button>
           </div>
         ) : (
@@ -444,25 +449,25 @@ const SkillRow = React.memo(function SkillRow({
               onClick={() => onEdit(skill)}
               className="text-[10px] text-white/40 hover:text-white/70 transition-colors"
             >
-              Edit
+              {t('sidebar_edit')}
             </button>
             <button
               onClick={() => onExport(skill)}
               className="text-[10px] text-white/40 hover:text-white/70 transition-colors"
             >
-              Exp
+              {t('sidebar_export_short')}
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
               className="text-[10px] text-white/40 hover:text-red-400 transition-colors"
             >
-              Del
+              {t('sidebar_delete_short')}
             </button>
             <button
               onClick={() => onRun(skill)}
               className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
             >
-              Run
+              {t('sidebar_run')}
             </button>
           </div>
         )}

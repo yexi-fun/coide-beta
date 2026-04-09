@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useSessionsStore, type TextMessage } from '../store/sessions'
+import { useI18n } from '../utils/i18n'
 
 type ExtractedBlock = {
   index: number
@@ -30,6 +31,7 @@ function extractCodeBlocks(messages: ReturnType<typeof useSessionsStore.getState
 }
 
 export default function CopyBlocksModal({ onClose }: { onClose: () => void }): React.JSX.Element {
+  const { t } = useI18n()
   const messages = useSessionsStore((s) => {
     const session = s.sessions.find((sess) => sess.id === s.activeSessionId)
     return session?.messages ?? []
@@ -63,7 +65,7 @@ export default function CopyBlocksModal({ onClose }: { onClose: () => void }): R
       <div className="w-full max-w-2xl max-h-[70vh] flex flex-col rounded-2xl bg-[#141414] border border-white/[0.1] shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
-          <h2 className="text-sm font-semibold text-white/90">Code Blocks</h2>
+          <h2 className="text-sm font-semibold text-white/90">{t('copy_blocks_title')}</h2>
           <button
             onClick={onClose}
             className="text-white/30 hover:text-white/60 transition-colors text-lg leading-none"
@@ -74,7 +76,7 @@ export default function CopyBlocksModal({ onClose }: { onClose: () => void }): R
 
         {/* Body */}
         {blocks.length === 0 ? (
-          <div className="p-8 text-center text-white/30 text-sm">No code blocks found in this session.</div>
+          <div className="p-8 text-center text-white/30 text-sm">{t('copy_blocks_empty')}</div>
         ) : (
           <div className="overflow-y-auto flex-1 divide-y divide-white/[0.04]">
             {blocks.map((block) => (
@@ -93,7 +95,7 @@ export default function CopyBlocksModal({ onClose }: { onClose: () => void }): R
                       : 'border-white/[0.09] text-white/40 hover:text-white/80 hover:border-white/20'
                   }`}
                 >
-                  {copiedIndex === block.index ? 'Copied!' : 'Copy'}
+                  {copiedIndex === block.index ? t('copy_copied') : t('copy_action')}
                 </button>
               </div>
             ))}

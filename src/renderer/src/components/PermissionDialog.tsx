@@ -1,6 +1,7 @@
 import React from 'react'
 import DiffViewer from './DiffViewer'
 import { buildDiffFromToolInput } from '../utils/diff'
+import { useI18n } from '../utils/i18n'
 
 export type PermissionRequest = {
   tool_id: string
@@ -53,6 +54,7 @@ export default function PermissionDialog({
   onAllow: () => void
   onDeny: () => void
 }): React.JSX.Element {
+  const { t } = useI18n()
   const isPlanApproval = permission.tool_name === 'ExitPlanMode'
   const isFileOp = permission.tool_name === 'Edit' || permission.tool_name === 'Write'
   const diff = isFileOp
@@ -74,14 +76,14 @@ export default function PermissionDialog({
           </span>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] text-white/30 uppercase tracking-wider">
-              {isPlanApproval ? 'Plan ready' : isFileOp ? 'Review file change' : 'Permission required'}
-              {queueLength > 1 ? ` (${queueLength} pending)` : ''}
+              {isPlanApproval ? t('permission_plan_ready') : isFileOp ? t('permission_review_file') : t('permission_required')}
+              {queueLength > 1 ? ` ${t('permission_pending', { count: queueLength })}` : ''}
             </p>
             <p className="text-sm font-medium text-white/80">
-              {isPlanApproval ? 'Execute this plan?' : permission.tool_name}
+              {isPlanApproval ? t('permission_execute_plan') : permission.tool_name}
               {diff?.isNewFile && (
                 <span className="ml-2 text-[10px] font-normal px-1.5 py-0.5 rounded bg-green-500/15 text-green-400/70">
-                  New file
+                  {t('permission_new_file')}
                 </span>
               )}
             </p>
@@ -92,7 +94,7 @@ export default function PermissionDialog({
         {isPlanApproval ? (
           <div className="rounded-lg bg-blue-500/[0.06] border border-blue-500/[0.12] p-3 mb-5">
             <p className="text-[12px] text-white/50 leading-relaxed">
-              Claude has outlined a plan above. Approve to start execution, or reject to cancel.
+              {t('permission_plan_hint')}
             </p>
           </div>
         ) : diff ? (
@@ -118,7 +120,7 @@ export default function PermissionDialog({
             onClick={onDeny}
             className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2 text-sm text-white/50 hover:bg-white/[0.08] hover:text-white/70 transition-colors"
           >
-            {isPlanApproval ? 'Reject Plan' : isFileOp ? 'Reject' : 'Deny'}
+            {isPlanApproval ? t('permission_reject_plan') : isFileOp ? t('permission_reject') : t('permission_deny')}
           </button>
           <button
             onClick={onAllow}
@@ -126,7 +128,7 @@ export default function PermissionDialog({
               isPlanApproval ? 'bg-green-600 hover:bg-green-500' : 'bg-blue-600 hover:bg-blue-500'
             }`}
           >
-            {isPlanApproval ? 'Execute Plan' : isFileOp ? 'Accept' : 'Allow'}
+            {isPlanApproval ? t('permission_execute') : isFileOp ? t('permission_accept') : t('permission_allow')}
           </button>
         </div>
       </div>

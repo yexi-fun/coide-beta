@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import { useSessionsStore, type Task, type Agent, type ToolCallMessage, type SessionUsage, type Message, type McpServerInfo } from '../store/sessions'
 import { useRateLimitStore, type RateLimitWindow } from '../store/rateLimit'
 import FileChangelog from './FileChangelog'
+import { useI18n } from '../utils/i18n'
 
 const EMPTY_AGENTS: Agent[] = []
 const EMPTY_TASKS: Task[] = []
@@ -11,6 +12,7 @@ const EMPTY_USAGE: SessionUsage = { inputTokens: 0, outputTokens: 0, cacheCreati
 type Tab = 'agents' | 'context' | 'mcp'
 
 export default function RightPanel(): React.JSX.Element {
+  const { t } = useI18n()
   const [activeTab, setActiveTab] = useState<Tab>('agents')
 
   return (
@@ -28,7 +30,7 @@ export default function RightPanel(): React.JSX.Element {
                   : 'text-white/30 hover:text-white/55 hover:bg-white/5'
               }`}
             >
-              {tab === 'mcp' ? 'MCP' : tab}
+              {tab === 'agents' ? t('right_panel_agents') : tab === 'context' ? t('right_panel_context') : 'MCP'}
             </button>
           ))}
         </div>
@@ -73,6 +75,7 @@ function SectionLabel({ label }: { label: string }): React.JSX.Element {
 }
 
 function AgentTree(): React.JSX.Element {
+  const { t } = useI18n()
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list')
   const agents = useSessionsStore((state) => {
     const session = state.sessions.find((s) => s.id === state.activeSessionId)
@@ -88,27 +91,27 @@ function AgentTree(): React.JSX.Element {
     <div>
       {total > 0 ? (
         <div className="flex items-center justify-between px-1 mb-2">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">Agent Tree</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">{t('right_panel_agent_tree')}</p>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-white/30 font-mono">{doneCount}/{total} done</span>
+            <span className="text-[10px] text-white/30 font-mono">{doneCount}/{total} {t('right_panel_done')}</span>
             <button
               onClick={() => setViewMode('list')}
               className={`p-0.5 rounded ${viewMode === 'list' ? 'text-white/50' : 'text-white/20 hover:text-white/40'}`}
-              title="List view"
+              title={t('right_panel_list_view')}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 3h10M1 6h10M1 9h10" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
             </button>
             <button
               onClick={() => setViewMode('timeline')}
               className={`p-0.5 rounded ${viewMode === 'timeline' ? 'text-white/50' : 'text-white/20 hover:text-white/40'}`}
-              title="Timeline view"
+              title={t('right_panel_timeline_view')}
             >
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="6" height="2" rx="0.5" fill="currentColor"/><rect x="3" y="5" width="8" height="2" rx="0.5" fill="currentColor"/><rect x="2" y="8" width="5" height="2" rx="0.5" fill="currentColor"/></svg>
             </button>
           </div>
         </div>
       ) : (
-        <SectionLabel label="Agent Tree" />
+        <SectionLabel label={t('right_panel_agent_tree')} />
       )}
       {viewMode === 'list' ? (
         <>
@@ -128,7 +131,7 @@ function AgentTree(): React.JSX.Element {
       )}
       {total === 0 && (
         <p className="mt-4 text-[11px] text-white/20 text-center">
-          Agents appear here during a session
+          {t('right_panel_agents_empty')}
         </p>
       )}
     </div>
@@ -268,6 +271,7 @@ function TimelineView({ agents }: { agents: Agent[] }): React.JSX.Element {
 }
 
 function TodoList(): React.JSX.Element {
+  const { t } = useI18n()
   const tasks = useSessionsStore((state) => {
     const session = state.sessions.find((s) => s.id === state.activeSessionId)
     return session?.tasks ?? EMPTY_TASKS
@@ -280,9 +284,9 @@ function TodoList(): React.JSX.Element {
   if (total === 0) {
     return (
       <div>
-        <SectionLabel label="Tasks" />
+        <SectionLabel label={t('right_panel_tasks')} />
         <p className="text-[11px] text-white/20 text-center mt-4">
-          Todo items appear when Claude creates a task list
+          {t('right_panel_tasks_empty')}
         </p>
       </div>
     )
@@ -292,8 +296,8 @@ function TodoList(): React.JSX.Element {
     <div>
       {/* Header + counter */}
       <div className="flex items-center justify-between px-1 mb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">Tasks</p>
-        <span className="text-[10px] text-white/30 font-mono">{completed}/{total} done</span>
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/20">{t('right_panel_tasks')}</p>
+        <span className="text-[10px] text-white/30 font-mono">{completed}/{total} {t('right_panel_done')}</span>
       </div>
 
       {/* Progress bar */}

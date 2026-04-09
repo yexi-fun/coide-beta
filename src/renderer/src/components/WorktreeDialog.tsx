@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useSessionsStore } from '../store/sessions'
 import { useSettingsStore } from '../store/settings'
+import { useI18n } from '../utils/i18n'
 
 type Props = {
   cwd: string
@@ -9,6 +10,7 @@ type Props = {
 }
 
 export default function WorktreeDialog({ cwd, onClose, onCreated }: Props): React.JSX.Element {
+  const { t } = useI18n()
   const [branch, setBranch] = useState('')
   const [prompt, setPrompt] = useState('')
   const [creating, setCreating] = useState(false)
@@ -71,15 +73,15 @@ export default function WorktreeDialog({ cwd, onClose, onCreated }: Props): Reac
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-purple-400/70">
               <path d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9a9 9 0 01-9 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <h2 className="text-[15px] font-semibold text-white/85">New Worktree Session</h2>
+            <h2 className="text-[15px] font-semibold text-white/85">{t('worktree_new_session')}</h2>
           </div>
 
           <p className="text-[11px] text-white/35 leading-relaxed">
-            Create an isolated session on a separate branch. Changes stay in the worktree and won't affect your main working directory.
+            {t('worktree_desc')}
           </p>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-white/50">Branch name</label>
+            <label className="text-[11px] font-medium text-white/50">{t('worktree_branch_name')}</label>
             <input
               ref={inputRef}
               type="text"
@@ -91,7 +93,7 @@ export default function WorktreeDialog({ cwd, onClose, onCreated }: Props): Reac
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-white/50">Initial prompt <span className="text-white/20">(optional)</span></label>
+            <label className="text-[11px] font-medium text-white/50">{t('worktree_initial_prompt')} <span className="text-white/20">({t('worktree_optional')})</span></label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -112,7 +114,7 @@ export default function WorktreeDialog({ cwd, onClose, onCreated }: Props): Reac
               onClick={onClose}
               className="rounded-md border border-white/[0.1] px-3.5 py-1.5 text-[12px] font-medium text-white/50 hover:text-white/70 hover:bg-white/5 transition-colors"
             >
-              Cancel
+              {t('worktree_cancel')}
             </button>
             <button
               onClick={handleCreate}
@@ -122,7 +124,7 @@ export default function WorktreeDialog({ cwd, onClose, onCreated }: Props): Reac
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M6 3v12M18 9a3 3 0 100-6 3 3 0 000 6zM6 21a3 3 0 100-6 3 3 0 000 6zM18 9a9 9 0 01-9 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              {creating ? 'Creating…' : 'Create'}
+              {creating ? t('worktree_creating') : t('worktree_create')}
             </button>
           </div>
         </div>

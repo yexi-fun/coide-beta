@@ -3,6 +3,8 @@ export type ThirdPartyProviderModel = {
   model: string
 }
 
+export type AppLanguage = 'zh' | 'en'
+
 export type ThirdPartyProviderSettings = {
   id: string
   name: string
@@ -14,6 +16,7 @@ export type ThirdPartyProviderSettings = {
 
 export type CoideSettings = {
   model: string // '' = no explicit selection, otherwise the selected provider model ID
+  language: AppLanguage
   skipPermissions: boolean
   notifications: boolean
   systemPrompt: string
@@ -31,6 +34,7 @@ export type CoideSettings = {
 
 export const DEFAULT_SETTINGS: CoideSettings = {
   model: '',
+  language: 'zh',
   skipPermissions: false,
   notifications: true,
   systemPrompt: '',

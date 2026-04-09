@@ -15,6 +15,7 @@ import { useHighlightMatches } from '../hooks/useHighlightMatches'
 import { parseMcpFromInit } from '../utils/mcpParsing'
 import { useRateLimitStore } from '../store/rateLimit'
 import { useLoopsStore } from '../store/loops'
+import { getLocale, useI18n } from '../utils/i18n'
 
 const EMPTY_MESSAGES: Message[] = []
 const BOUNCE_DOTS = [0, 1, 2]
@@ -48,6 +49,7 @@ export default function Chat({
   onToggleTerminal?: () => void
   terminalOpen?: boolean
 }): React.JSX.Element {
+  const { language, t } = useI18n()
   const [loadingSessions, setLoadingSessions] = useState<Set<string>>(new Set())
   const loadingSessionsRef = useRef<Set<string>>(new Set())
   loadingSessionsRef.current = loadingSessions
@@ -114,7 +116,7 @@ export default function Chat({
       const fmt = intervalMs < 60_000 ? `${intervalMs / 1000}s` : intervalMs < 3_600_000 ? `${intervalMs / 60_000}m` : `${intervalMs / 3_600_000}h`
       useSessionsStore.getState().addMessage(sid, {
         id: Date.now().toString(), role: 'assistant',
-        text: `Loop started: **"${prompt}"** every ${fmt}. Type \`/loop stop\` to cancel.`
+        text: t('chat_loop_started', { prompt, interval: fmt })
       })
 
       // Fire first iteration immediately
@@ -142,7 +144,7 @@ export default function Chat({
       if (loops.loops.has(sid)) {
         loops.removeLoop(sid)
         useSessionsStore.getState().addMessage(sid, {
-          id: Date.now().toString(), role: 'assistant', text: 'Loop stopped.'
+          id: Date.now().toString(), role: 'assistant', text: t('chat_loop_stopped')
         })
       }
     }
@@ -221,9 +223,9 @@ export default function Chat({
           const yesterday = new Date(today)
           yesterday.setDate(yesterday.getDate() - 1)
           let label: string
-          if (msgDate.toDateString() === today.toDateString()) label = 'Today'
-          else if (msgDate.toDateString() === yesterday.toDateString()) label = 'Yesterday'
-          else label = msgDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+          if (msgDate.toDateString() === today.toDateString()) label = t('chat_today')
+          else if (msgDate.toDateString() === yesterday.toDateString()) label = t('chat_yesterday')
+          else label = msgDate.toLocaleDateString(getLocale(language), { weekday: 'long', month: 'long', day: 'numeric' })
           items.push({ kind: 'separator', label })
         }
       }
@@ -367,7 +369,7 @@ export default function Chat({
                 useSessionsStore.getState().setPendingAutoCompact(sid, true)
               } else {
                 useSessionsStore.getState().setAutoCompacted(sid, true)
-                addMessage(sid, { id: Date.now().toString(), role: 'assistant', text: 'Context approaching limit — auto-compacting…' })
+                addMessage(sid, { id: Date.now().toString(), role: 'assistant', text: t('chat_context_auto_compact') })
                 setTimeout(() => sendMessageRef.current?.('/compact'), 150)
               }
             }
@@ -543,7 +545,7 @@ export default function Chat({
         if (resultSess?.pendingAutoCompact && !event.is_error && sendMessageRef.current) {
           useSessionsStore.getState().setPendingAutoCompact(sid, false)
           useSessionsStore.getState().setAutoCompacted(sid, true)
-          addMessage(sid, { id: Date.now().toString(), role: 'assistant', text: 'Context approaching limit — auto-compacting…' })
+          addMessage(sid, { id: Date.now().toString(), role: 'assistant', text: t('chat_context_auto_compact') })
           setTimeout(() => sendMessageRef.current?.('/compact'), 150)
         }
       }
@@ -809,10 +811,10 @@ export default function Chat({
       useSessionsStore.getState().addMessage(newId, {
         id: Date.now().toString(),
         role: 'assistant',
-        text: `⑂ Forked from **"${forkInfo?.title ?? 'previous session'}"**. History copied up to this point.\n\nOriginal session is unchanged. The next message starts a fresh Claude session.`
+        text: t('input_forked_from', { title: forkInfo?.title ?? 'previous session' })
       })
     }
-  }, [])
+  }, [t])
 
   // Only show permission dialogs for the currently viewed session
   const currentPermission = permissionQueue.find((p) => p.coideSessionId === activeSessionId) ?? null
@@ -836,8 +838,8 @@ export default function Chat({
               <line x1="9" y1="15" x2="12" y2="12" />
               <line x1="15" y1="15" x2="12" y2="12" />
             </svg>
-            <p className="text-sm font-medium text-blue-300">Drop files here</p>
-            <p className="text-[11px] text-blue-400/50">Images, PDFs, documents, code files, and more</p>
+            <p className="text-sm font-medium text-blue-300">{t('chat_drop_files')}</p>
+            <p className="text-[11px] text-blue-400/50">{t('chat_drop_files_hint')}</p>
           </div>
         </div>
       )}
@@ -851,7 +853,7 @@ export default function Chat({
           <button
             onClick={handlePickFolder}
             className="text-xs text-white/40 font-mono truncate max-w-[260px] hover:text-white/70 transition-colors text-left"
-            title="Click to change project folder"
+            title={t('chat_change_project_folder')}
           >
             {cwd}
           </button>
@@ -872,7 +874,7 @@ export default function Chat({
           )}
           {activeSession?.worktree && (
             <span className="text-[9px] font-semibold text-purple-400/50 bg-purple-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
-              worktree
+              {t('chat_worktree')}
             </span>
           )}
         </div>
@@ -886,18 +888,18 @@ export default function Chat({
                   const result = await window.api.git.worktreeMerge(mainCwd, wt.branch)
                   const store = useSessionsStore.getState()
                   if (result.success) {
-                    store.addMessage(activeSession.id, { id: Date.now().toString(), role: 'assistant', text: `Merged **${wt.branch}** into main branch.` })
+                    store.addMessage(activeSession.id, { id: Date.now().toString(), role: 'assistant', text: t('chat_merged_branch', { branch: wt.branch }) })
                   } else {
-                    store.addMessage(activeSession.id, { id: Date.now().toString(), role: 'error', text: `Merge failed: ${result.error}` })
+                    store.addMessage(activeSession.id, { id: Date.now().toString(), role: 'error', text: t('chat_merge_failed', { error: result.error }) })
                   }
                 }}
                 className="flex items-center gap-1 rounded-md border border-green-500/20 px-2 py-0.5 text-[11px] text-green-400/70 hover:bg-green-500/10 transition-colors"
-                title="Merge worktree branch into main"
+                title={t('chat_merge_worktree_title')}
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="18" cy="18" r="3" /><circle cx="6" cy="6" r="3" /><path d="M6 21V9a9 9 0 0 0 9 9" />
                 </svg>
-                Merge
+                {t('chat_merge')}
               </button>
               <button
                 onClick={async () => {
@@ -907,7 +909,7 @@ export default function Chat({
                   useSessionsStore.getState().deleteSession(activeSession.id)
                 }}
                 className="rounded-md border border-red-500/20 px-1.5 py-0.5 text-red-400/50 hover:text-red-400/80 hover:bg-red-500/10 transition-colors"
-                title="Remove worktree and delete session"
+                title={t('chat_remove_worktree_title')}
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -920,7 +922,7 @@ export default function Chat({
               onClick={() => { window.api.claude.abort(activeSessionId ?? undefined); setPermissionQueue((q) => q.filter((p) => p.coideSessionId !== activeSessionId)) }}
               className="rounded-md border border-red-500/20 px-2 py-0.5 text-[11px] text-red-400/80 hover:bg-red-500/10 transition-colors"
             >
-              Stop
+              {t('chat_stop')}
             </button>
           )}
           {usagePct >= 70 && (() => {
@@ -930,7 +932,7 @@ export default function Chat({
             return (
               <button
                 onClick={() => { if (!rightPanelOpen) onToggleRightPanel() }}
-                title={`Context usage: ${Math.round(usagePct)}%`}
+                title={t('chat_context_usage', { pct: Math.round(usagePct) })}
                 className={`rounded-md border px-2 py-0.5 text-[11px] font-mono transition-colors flex items-center gap-1 ${
                   isRed
                     ? 'border-red-500/40 bg-red-500/10 text-red-400 animate-pulse'
@@ -954,11 +956,11 @@ export default function Chat({
               void window.api.settings.syncSelectedModel(nextModel)
             }}
             disabled={availableModels.length === 0}
-            title="Model selection is linked to the enabled provider in Settings."
+            title={t('chat_model_linked')}
             className="rounded-md border border-white/[0.06] bg-transparent px-2 py-0.5 text-[10px] text-white/55 outline-none transition-colors hover:border-white/[0.12] disabled:cursor-not-allowed disabled:text-white/20"
           >
             <option value="" className="bg-[#1a1a1a] text-white/80">
-              {availableModels.length === 0 ? 'no model' : 'select model'}
+              {availableModels.length === 0 ? t('chat_no_model') : t('chat_select_model')}
             </option>
             {availableModels.map((item) => (
               <option key={item} value={item} className="bg-[#1a1a1a] text-white/80">
@@ -966,7 +968,7 @@ export default function Chat({
               </option>
             ))}
           </select>
-          <div className="flex items-center rounded-md border border-white/[0.06] overflow-hidden" title="Effort level — controls reasoning depth. Click active level to reset to default.">
+          <div className="flex items-center rounded-md border border-white/[0.06] overflow-hidden" title={t('chat_effort_title')}>
             {EFFORT_LEVELS.map((level) => {
               const value = level === 'med' ? 'medium' : level
               const isActive = effort === value
@@ -990,7 +992,7 @@ export default function Chat({
           </div>
           <button
             onClick={() => updateSettings({ planMode: !planMode })}
-            title={planMode ? 'Plan mode ON — Claude will plan before executing. Click to disable.' : 'Click to enable plan mode (plan before executing)'}
+            title={planMode ? t('chat_plan_enabled') : t('chat_plan_disabled')}
             className={`rounded-md px-2 py-0.5 text-[11px] transition-colors flex items-center gap-1 ${
               planMode
                 ? 'border border-blue-500/40 bg-blue-500/10 text-blue-400'
@@ -1004,11 +1006,11 @@ export default function Chat({
               <line x1="16" y1="17" x2="8" y2="17" />
               <polyline points="10 9 9 9 8 9" />
             </svg>
-            {planMode && <span>Plan</span>}
+            {planMode && <span>{t('chat_plan')}</span>}
           </button>
           <button
             onClick={() => updateSettings({ compactMode: !compactMode })}
-            title={compactMode ? 'Compact mode ON — denser layout. Click to disable.' : 'Click to enable compact mode (denser layout)'}
+            title={compactMode ? t('chat_compact_enabled') : t('chat_compact_disabled')}
             className={`rounded-md px-2 py-0.5 text-[11px] transition-colors flex items-center gap-1 ${
               compactMode
                 ? 'border border-teal-500/40 bg-teal-500/10 text-teal-400'
@@ -1021,11 +1023,11 @@ export default function Chat({
               <line x1="3" y1="14" x2="21" y2="14" />
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
-            {compactMode && <span>Compact</span>}
+            {compactMode && <span>{t('chat_compact')}</span>}
           </button>
           <button
             onClick={() => updateSettings({ skipPermissions: !skipPermissions })}
-            title={skipPermissions ? 'Auto-approve enabled — click to require approval' : 'Click to auto-approve all tools'}
+            title={skipPermissions ? t('chat_auto_approve_enabled') : t('chat_auto_approve_disabled')}
             className={`rounded-md px-2 py-0.5 text-[11px] transition-colors flex items-center gap-1 ${
               skipPermissions
                 ? 'border border-amber-500/40 bg-amber-500/10 text-amber-400'
@@ -1035,11 +1037,11 @@ export default function Chat({
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
-            {skipPermissions && <span>Auto</span>}
+            {skipPermissions && <span>{t('chat_auto')}</span>}
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
-            title="Settings"
+            title={t('chat_settings')}
             className="rounded-md px-2 py-0.5 text-white/25 hover:text-white/50 transition-colors"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1050,7 +1052,7 @@ export default function Chat({
           {messages.length > 0 && (
             <button
               onClick={() => setSearchOpen((o) => !o)}
-              title="Find in conversation (⌘F)"
+              title={t('chat_find_conversation')}
               className={`rounded-md px-2 py-0.5 transition-colors ${searchOpen ? 'text-white/50' : 'text-white/25 hover:text-white/50'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1062,7 +1064,7 @@ export default function Chat({
           {messages.length > 0 && (
             <button
               onClick={copyConversation}
-              title="Copy conversation as markdown"
+              title={t('chat_copy_markdown')}
               className={`rounded-md px-2 py-0.5 transition-colors ${copied ? 'text-green-400' : 'text-white/25 hover:text-white/50'}`}
             >
               {copied ? (
@@ -1080,7 +1082,7 @@ export default function Chat({
           {onToggleTerminal && (
             <button
               onClick={onToggleTerminal}
-              title="Toggle terminal (⌘J)"
+              title={t('chat_toggle_terminal')}
               className={`rounded-md px-2 py-0.5 transition-colors ${
                 terminalOpen ? 'text-white/50 hover:text-white/70' : 'text-white/25 hover:text-white/50'
               }`}
@@ -1124,14 +1126,14 @@ export default function Chat({
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <p className="text-[11px] text-purple-400/50">
-              Worktree session — changes are isolated in <span className="font-mono font-medium">{activeSession.worktree.branch}</span>
+              {t('chat_worktree_banner', { branch: activeSession.worktree.branch })}
             </p>
           </div>
         )}
         {messages.length === 0 && !isLoading && (
           <div className="flex h-full flex-col items-center justify-center gap-3">
             <p className="text-[32px] font-semibold tracking-tight text-white/[0.07]">coide</p>
-            <p className="text-xs text-white/20">Start typing or pick a skill from the sidebar</p>
+            <p className="text-xs text-white/20">{t('chat_empty_hint')}</p>
           </div>
         )}
 
@@ -1214,12 +1216,12 @@ export default function Chat({
                           }}
                         />
                         <div className="flex justify-end gap-2 mt-2">
-                          <button onClick={() => { setEditingMessageId(null); setEditText('') }} className="rounded-lg px-3 py-1 text-xs text-white/50 hover:text-white/80 transition-colors">Cancel</button>
+                          <button onClick={() => { setEditingMessageId(null); setEditText('') }} className="rounded-lg px-3 py-1 text-xs text-white/50 hover:text-white/80 transition-colors">{t('chat_cancel')}</button>
                           <button
                             disabled={!editText.trim()}
                             onClick={() => { const mid = editingMessageId!; const text = editText; setEditingMessageId(null); setEditText(''); editAndResend(mid, text) }}
                             className="rounded-lg bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-400 disabled:opacity-25 transition-colors"
-                          >Save</button>
+                          >{t('chat_save')}</button>
                         </div>
                       </div>
                     </div>
@@ -1258,7 +1260,7 @@ export default function Chat({
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
           </svg>
-          Jump to bottom
+          {t('chat_jump_bottom')}
         </button>
       )}
 
@@ -1267,12 +1269,12 @@ export default function Chat({
 
       {/* Status line */}
       <div className="flex items-center justify-center gap-3 px-4 py-1 text-[10px] font-mono text-white/25 border-t border-white/[0.04]">
-        <span className="text-white/35">{model || 'default'}</span>
+        <span className="text-white/35">{model || t('chat_default_model')}</span>
         {effort && <span className="text-violet-400/50">{effort}</span>}
         {usage && (() => {
           const total = usage.inputTokens + usage.outputTokens
           const fmt = (n: number): string => n >= 1_000_000 ? (n / 1_000_000).toFixed(2) + 'M' : n >= 1000 ? Math.round(n / 1000) + 'k' : String(n)
-          return <span>{fmt(total)} tokens · {Math.round(usagePct)}%</span>
+          return <span>{t('chat_tokens_and_pct', { tokens: fmt(total), pct: Math.round(usagePct) })}</span>
         })()}
         {usage && (() => {
           const normalizedModel = model.trim().toLowerCase()
@@ -1312,6 +1314,7 @@ export default function Chat({
 }
 
 function RateLimitPill(): React.JSX.Element | null {
+  const { t } = useI18n()
   const fiveHour = useRateLimitStore((s) => s.windows['five_hour'])
   const [now, setNow] = useState(Date.now())
 
@@ -1331,7 +1334,7 @@ function RateLimitPill(): React.JSX.Element | null {
   const resetStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 
   if (isThrottled) {
-    return <span className="text-red-400/80 animate-pulse">5h: LIMIT · resets {resetStr}</span>
+    return <span className="text-red-400/80 animate-pulse">{t('chat_rate_limit_hit', { reset: resetStr })}</span>
   }
 
   // Show reset countdown when we have a valid resetsAt (always useful for 5h window)
@@ -1341,13 +1344,14 @@ function RateLimitPill(): React.JSX.Element | null {
     const elapsed = totalWindowMs - resetsInMs
     const pct = Math.min((elapsed / totalWindowMs) * 100, 100)
     const color = pct > 90 ? 'text-red-400/80' : pct > 70 ? 'text-amber-400/70' : 'text-blue-400/50'
-    return <span className={color}>5h: resets {resetStr}</span>
+    return <span className={color}>{t('chat_rate_limit_reset', { reset: resetStr })}</span>
   }
 
   return null
 }
 
 function ThinkingIndicator({ startTime, compact }: { startTime: number; compact: boolean }): React.JSX.Element {
+  const { t } = useI18n()
   const [elapsed, setElapsed] = useState(0)
 
   useEffect(() => {
@@ -1369,7 +1373,7 @@ function ThinkingIndicator({ startTime, compact }: { startTime: number; compact:
             />
           ))}
         </div>
-        <span className="text-xs font-medium text-violet-400 font-mono">Thinking</span>
+        <span className="text-xs font-medium text-violet-400 font-mono">{t('chat_thinking')}</span>
         <span className="text-[11px] text-violet-400/40 font-mono">{secs}s</span>
       </div>
     </div>
@@ -1377,6 +1381,7 @@ function ThinkingIndicator({ startTime, compact }: { startTime: number; compact:
 }
 
 const MessageRow = React.memo(function MessageRow({ message, isLoading, onEdit, onFork }: { message: Message; isLoading?: boolean; onEdit?: (id: string, text: string) => void; onFork?: (id: string) => void }): React.JSX.Element {
+  const { t } = useI18n()
   const [copied, setCopied] = useState(false)
   const contentRef = useRef<HTMLDivElement>(null)
   const compact = useSettingsStore((s) => s.compactMode)
@@ -1394,7 +1399,7 @@ const MessageRow = React.memo(function MessageRow({ message, isLoading, onEdit, 
             <button
               onClick={() => onEdit(textMsg.id, textMsg.text)}
               className="absolute -left-8 top-2 rounded-md p-1 text-white/0 group-hover/msg:text-white/40 hover:!text-white/70 transition-colors"
-              title="Edit message"
+              title={t('chat_edit_message')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -1406,7 +1411,7 @@ const MessageRow = React.memo(function MessageRow({ message, isLoading, onEdit, 
             <button
               onClick={() => onFork(textMsg.id)}
               className="absolute -left-14 top-2 rounded-md p-1 text-white/0 group-hover/msg:text-blue-400/40 hover:!text-blue-400/70 transition-colors"
-              title="Fork from this message"
+              title={t('chat_fork_from_message')}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="18" cy="18" r="3" />
@@ -1474,7 +1479,7 @@ const MessageRow = React.memo(function MessageRow({ message, isLoading, onEdit, 
       <button
         onClick={copyText}
         className={`absolute right-2 top-2 rounded-md p-1 transition-colors ${copied ? 'text-green-400' : 'text-white/25 group-hover/msg:text-white/40 hover:!text-white/70'}`}
-        title="Copy response"
+        title={t('chat_copy_response')}
       >
         {copied ? (
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

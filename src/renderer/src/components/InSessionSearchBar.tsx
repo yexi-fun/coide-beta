@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react'
+import { useI18n } from '../utils/i18n'
 
 interface Props {
   query: string
@@ -19,6 +20,7 @@ export default function InSessionSearchBar({
   onPrev,
   onClose
 }: Props): React.JSX.Element {
+  const { t } = useI18n()
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -51,12 +53,12 @@ export default function InSessionSearchBar({
         value={query}
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Find in conversation…"
+        placeholder={t('search_in_conversation')}
         className="flex-1 bg-transparent text-xs text-white/80 placeholder-white/25 outline-none"
       />
       {query && (
         <span className="text-[11px] text-white/30 font-mono tabular-nums flex-shrink-0">
-          {matchCount > 0 ? `${activeIndex + 1} of ${matchCount}` : 'No results'}
+          {matchCount > 0 ? t('search_of', { current: activeIndex + 1, total: matchCount }) : t('search_no_results')}
         </span>
       )}
       <div className="flex items-center gap-0.5">
@@ -64,7 +66,7 @@ export default function InSessionSearchBar({
           onClick={onPrev}
           disabled={matchCount === 0}
           className="rounded p-0.5 text-white/30 hover:text-white/60 disabled:opacity-25 transition-colors"
-          title="Previous (Shift+Enter)"
+          title={t('search_prev')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="18 15 12 9 6 15" />
@@ -74,7 +76,7 @@ export default function InSessionSearchBar({
           onClick={onNext}
           disabled={matchCount === 0}
           className="rounded p-0.5 text-white/30 hover:text-white/60 disabled:opacity-25 transition-colors"
-          title="Next (Enter)"
+          title={t('search_next')}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="6 9 12 15 18 9" />
@@ -84,7 +86,7 @@ export default function InSessionSearchBar({
       <button
         onClick={onClose}
         className="rounded p-0.5 text-white/30 hover:text-white/60 transition-colors"
-        title="Close (Esc)"
+        title={t('search_close')}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18" />

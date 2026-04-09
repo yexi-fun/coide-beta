@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useSettingsStore } from '../store/settings'
+import { useI18n } from '../utils/i18n'
 
 type Step = 1 | 2 | 3
 type CliStatus = 'checking' | 'found' | 'not-found'
@@ -36,6 +37,7 @@ export default function WelcomeModal(): React.JSX.Element | null {
 }
 
 function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
+  const { t } = useI18n()
   const [status, setStatus] = useState<CliStatus>('checking')
   const [cliPath, setCliPath] = useState('')
   const [cliVersion, setCliVersion] = useState('')
@@ -91,8 +93,8 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
   return (
     <div className="text-center space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-white/90 mb-1">Welcome to coide</h2>
-        <p className="text-[12px] text-white/35">Checking for Claude Code CLI…</p>
+        <h2 className="text-lg font-semibold text-white/90 mb-1">{t('welcome_title')}</h2>
+        <p className="text-[12px] text-white/35">{t('welcome_checking_cli')}</p>
       </div>
 
       {status === 'checking' && (
@@ -109,7 +111,7 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
               <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p className="text-[13px] font-medium text-green-400/80">Claude Code CLI found</p>
+          <p className="text-[13px] font-medium text-green-400/80">{t('welcome_cli_found')}</p>
           <p className="text-[11px] text-white/30 font-mono truncate">{cliPath}</p>
           {cliVersion && <p className="text-[10px] text-white/20">{cliVersion}</p>}
         </div>
@@ -125,9 +127,9 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
                 <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </div>
-            <p className="text-[13px] font-medium text-yellow-400/80">Claude Code CLI not found</p>
+            <p className="text-[13px] font-medium text-yellow-400/80">{t('welcome_cli_not_found')}</p>
             <p className="text-[11px] text-white/35 leading-relaxed">
-              coide requires the Claude Code CLI to work. Install it first, then come back.
+              {t('welcome_cli_required')}
             </p>
             <a
               href="https://docs.anthropic.com/en/docs/claude-code/overview"
@@ -135,7 +137,7 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
               rel="noopener noreferrer"
               className="inline-block rounded-lg bg-white/[0.08] hover:bg-white/[0.12] px-4 py-2 text-[12px] font-medium text-white/70 transition-colors"
             >
-              Install Claude Code →
+              {t('welcome_install_claude')}
             </a>
           </div>
 
@@ -143,11 +145,11 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
             onClick={() => checkBinary()}
             className="rounded-lg border border-white/[0.1] px-4 py-2 text-[12px] font-medium text-white/50 hover:text-white/70 hover:bg-white/5 transition-colors"
           >
-            Check Again
+            {t('welcome_check_again')}
           </button>
 
           <div className="pt-2 space-y-2">
-            <p className="text-[10px] text-white/20 uppercase tracking-wider font-medium">Or set custom path</p>
+            <p className="text-[10px] text-white/20 uppercase tracking-wider font-medium">{t('welcome_or_custom_path')}</p>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -162,7 +164,7 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
                 disabled={!customPath.trim() || verifying}
                 className="rounded-md bg-blue-600/80 hover:bg-blue-600 px-3 py-1.5 text-[12px] font-medium text-white transition-colors disabled:opacity-30"
               >
-                {verifying ? '…' : 'Verify'}
+                {verifying ? '…' : t('welcome_verify')}
               </button>
             </div>
           </div>
@@ -174,7 +176,7 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
           onClick={onNext}
           className="rounded-lg bg-blue-600 hover:bg-blue-500 px-5 py-2 text-[13px] font-medium text-white transition-colors"
         >
-          Continue
+          {t('welcome_continue')}
         </button>
       )}
     </div>
@@ -182,6 +184,7 @@ function StepCli({ onNext }: { onNext: () => void }): React.JSX.Element {
 }
 
 function StepFolder({ onNext, onBack }: { onNext: () => void; onBack: () => void }): React.JSX.Element {
+  const { t } = useI18n()
   const defaultCwd = useSettingsStore((s) => s.defaultCwd)
   const [folder, setFolder] = useState(defaultCwd)
   const [picking, setPicking] = useState(false)
@@ -200,8 +203,8 @@ function StepFolder({ onNext, onBack }: { onNext: () => void; onBack: () => void
   return (
     <div className="text-center space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-white/90 mb-1">Pick your project folder</h2>
-        <p className="text-[12px] text-white/35">This is where coide will open new sessions by default.</p>
+        <h2 className="text-lg font-semibold text-white/90 mb-1">{t('welcome_pick_folder')}</h2>
+        <p className="text-[12px] text-white/35">{t('welcome_pick_folder_desc')}</p>
       </div>
 
       <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 space-y-3">
@@ -226,7 +229,7 @@ function StepFolder({ onNext, onBack }: { onNext: () => void; onBack: () => void
           disabled={picking}
           className="rounded-lg bg-white/[0.08] hover:bg-white/[0.12] px-4 py-2 text-[12px] font-medium text-white/60 transition-colors disabled:opacity-50"
         >
-          {picking ? 'Choosing…' : folder ? 'Change Folder' : 'Choose Folder'}
+          {picking ? t('welcome_choosing') : folder ? t('welcome_change_folder') : t('welcome_choose_folder')}
         </button>
       </div>
 
@@ -235,14 +238,14 @@ function StepFolder({ onNext, onBack }: { onNext: () => void; onBack: () => void
           onClick={onBack}
           className="rounded-lg px-4 py-2 text-[12px] font-medium text-white/30 hover:text-white/50 transition-colors"
         >
-          ← Back
+          {t('welcome_back')}
         </button>
         <button
           onClick={onNext}
           disabled={!folder}
           className="rounded-lg bg-blue-600 hover:bg-blue-500 px-5 py-2 text-[13px] font-medium text-white transition-colors disabled:opacity-30"
         >
-          Next →
+          {t('welcome_next')}
         </button>
       </div>
     </div>
@@ -250,18 +253,19 @@ function StepFolder({ onNext, onBack }: { onNext: () => void; onBack: () => void
 }
 
 function StepTips(): React.JSX.Element {
+  const { t } = useI18n()
   const tips = [
-    { keys: '⌘ K', label: 'New session' },
-    { keys: '⌘ J', label: 'Toggle terminal' },
-    { keys: '/', label: 'Slash commands & skills' },
-    { keys: '⌘ [  ]', label: 'Switch sessions' }
+    { keys: '⌘ K', label: t('welcome_tip_new_session') },
+    { keys: '⌘ J', label: t('welcome_tip_toggle_terminal') },
+    { keys: '/', label: t('welcome_tip_slash') },
+    { keys: '⌘ [  ]', label: t('welcome_tip_switch_sessions') }
   ]
 
   return (
     <div className="text-center space-y-5">
       <div>
-        <h2 className="text-lg font-semibold text-white/90 mb-1">You're all set</h2>
-        <p className="text-[12px] text-white/35">A few shortcuts to get you started.</p>
+        <h2 className="text-lg font-semibold text-white/90 mb-1">{t('welcome_ready')}</h2>
+        <p className="text-[12px] text-white/35">{t('welcome_shortcuts')}</p>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -279,7 +283,7 @@ function StepTips(): React.JSX.Element {
         onClick={() => useSettingsStore.getState().updateSettings({ onboardingComplete: true })}
         className="rounded-lg bg-blue-600 hover:bg-blue-500 px-6 py-2.5 text-[13px] font-semibold text-white transition-colors"
       >
-        Get Started
+        {t('welcome_get_started')}
       </button>
     </div>
   )

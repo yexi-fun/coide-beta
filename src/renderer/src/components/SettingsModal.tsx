@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useSettingsStore } from '../store/settings'
 import { useHookEditorStore } from '../store/hookEditor'
 import { type ThirdPartyProviderSettings } from '../../../shared/types'
+import { useI18n } from '../utils/i18n'
 
 type SettingsSection = 'essential' | 'advanced' | 'third-party'
 
 export default function SettingsModal({ onClose }: { onClose: () => void }): React.JSX.Element {
   const settings = useSettingsStore()
+  const { language, setLanguage, t } = useI18n()
   const update = settings.updateSettings
   const reset = settings.resetSettings
   const [draftProviders, setDraftProviders] = useState<ThirdPartyProviderSettings[]>(settings.thirdPartyProviders)
@@ -58,7 +60,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
 
   const saveProviders = (providerName?: string): void => {
     commitProviders(draftProviders)
-    setSaveNotice(providerName?.trim() ? 'Saved locally' : 'Saved')
+    setSaveNotice(providerName?.trim() ? t('settings_saved_locally') : t('settings_saved'))
   }
 
   const activateProviders = (providers: ThirdPartyProviderSettings[]): void => {
@@ -179,25 +181,25 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
         ) : null}
         <aside className="flex w-[188px] flex-shrink-0 flex-col border-r border-white/[0.06] bg-[#101010] px-4 py-6">
           <div className="mb-7 pr-8">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/35">Preferences</p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-white/92">Settings</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-100/35">{t('settings_preferences')}</p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-white/92">{t('settings_title')}</h2>
           </div>
           <nav className="space-y-2">
             <SidebarItem
-              title="Essential"
-              subtitle="Core behavior"
+              title={t('settings_essential')}
+              subtitle={t('settings_core_behavior')}
               active={activeSection === 'essential'}
               onClick={() => setActiveSection('essential')}
             />
             <SidebarItem
-              title="Advanced"
-              subtitle="Runtime and workspace"
+              title={t('settings_advanced')}
+              subtitle={t('settings_runtime_workspace')}
               active={activeSection === 'advanced'}
               onClick={() => setActiveSection('advanced')}
             />
             <SidebarItem
-              title="Third-Party API"
-              subtitle="Providers and models"
+              title={t('settings_third_party')}
+              subtitle={t('settings_providers_models')}
               active={activeSection === 'third-party'}
               onClick={() => setActiveSection('third-party')}
             />
@@ -209,16 +211,16 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
             <div className="mx-auto flex w-full max-w-[680px] items-center justify-between gap-4">
               <h3 className="text-[22px] font-semibold tracking-tight text-white/92">
                 {activeSection === 'essential'
-                  ? 'Essential'
+                  ? t('settings_essential')
                   : activeSection === 'advanced'
-                    ? 'Advanced'
-                    : 'Third-Party API'}
+                    ? t('settings_advanced')
+                    : t('settings_third_party')}
               </h3>
               <button
                 onClick={onClose}
                 className="flex h-9 w-9 items-center justify-center text-lg leading-none text-white/38 transition-colors hover:text-white/70"
                 type="button"
-                aria-label="Close settings"
+                aria-label={t('search_close')}
               >
                 &times;
               </button>
@@ -229,23 +231,23 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
             <div className="mx-auto w-full max-w-[680px]">
               {activeSection === 'essential' && (
                 <>
-                  <SectionLabel>Essential</SectionLabel>
+                  <SectionLabel>{t('settings_essential')}</SectionLabel>
 
-                  <SettingRow label="Skip Permissions">
+                  <SettingRow label={t('settings_skip_permissions')}>
                     <Toggle
                       checked={settings.skipPermissions}
                       onChange={(v) => update({ skipPermissions: v })}
                     />
                   </SettingRow>
 
-                  <SettingRow label="Notifications">
+                  <SettingRow label={t('settings_notifications')}>
                     <Toggle
                       checked={settings.notifications}
                       onChange={(v) => update({ notifications: v })}
                     />
                   </SettingRow>
 
-                  <SettingRow label="Auto-compact">
+                  <SettingRow label={t('settings_auto_compact')}>
                     <Toggle
                       checked={settings.autoCompact}
                       onChange={(v) => update({ autoCompact: v })}
@@ -253,11 +255,11 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                   </SettingRow>
 
                   <div className="mb-4">
-                    <label className="block text-xs text-white/50 mb-1.5">System Prompt</label>
+                    <label className="block text-xs text-white/50 mb-1.5">{t('settings_system_prompt')}</label>
                     <textarea
                       value={settings.systemPrompt}
                       onChange={(e) => update({ systemPrompt: e.target.value })}
-                      placeholder="Appended to Claude's system prompt..."
+                      placeholder={t('settings_system_prompt_placeholder')}
                       rows={3}
                       className="w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs text-white/80 placeholder-white/20 outline-none focus:border-white/[0.15] transition-colors resize-none"
                     />
@@ -267,10 +269,10 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
 
               {activeSection === 'advanced' && (
                 <>
-                  <SectionLabel>Advanced</SectionLabel>
+                  <SectionLabel>{t('settings_advanced')}</SectionLabel>
 
                   <div className="mb-3">
-                    <label className="block text-xs text-white/50 mb-1.5">Claude Binary</label>
+                    <label className="block text-xs text-white/50 mb-1.5">{t('settings_claude_binary')}</label>
                     <input
                       type="text"
                       value={settings.claudeBinaryPath}
@@ -280,7 +282,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                   </div>
 
                   <div className="mb-3">
-                    <label className="block text-xs text-white/50 mb-1.5">Default CWD</label>
+                    <label className="block text-xs text-white/50 mb-1.5">{t('settings_default_cwd')}</label>
                     <div className="flex gap-1.5">
                       <input
                         type="text"
@@ -291,7 +293,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                       <button
                         onClick={handlePickDefaultCwd}
                         className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-xs text-white/40 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
-                        title="Browse..."
+                        title={t('settings_browse')}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -301,7 +303,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                   </div>
 
                   <div className="mb-3">
-                    <label className="block text-xs text-white/50 mb-1.5">Hooks</label>
+                    <label className="block text-xs text-white/50 mb-1.5">{t('settings_hooks')}</label>
                     <button
                       onClick={() => {
                         onClose()
@@ -309,11 +311,11 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                       }}
                       className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs text-white/40 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
                     >
-                      Configure Hooks...
+                      {t('settings_configure_hooks')}
                     </button>
                   </div>
 
-                  <SettingRow label="Font Size">
+                  <SettingRow label={t('settings_font_size')}>
                     <SegmentedControl
                       value={settings.fontSize}
                       onChange={(v) => update({ fontSize: v as 'small' | 'medium' | 'large' })}
@@ -325,30 +327,32 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                     />
                   </SettingRow>
 
-                  <SettingRow label="Effort Level">
+                  <SettingRow label={t('settings_effort_level')}>
                     <Select
                       value={settings.effort}
                       onChange={(v) => update({ effort: v })}
                       options={[
-                        { value: '', label: 'Default' },
-                        { value: 'low', label: 'Low' },
-                        { value: 'medium', label: 'Medium' },
-                        { value: 'high', label: 'High' }
+                        { value: '', label: t('settings_default') },
+                        { value: 'low', label: t('settings_low') },
+                        { value: 'medium', label: t('settings_medium') },
+                        { value: 'high', label: t('settings_high') }
                       ]}
                     />
                   </SettingRow>
 
-                  <SettingRow label="Language">
+                  <SettingRow label={t('settings_language')}>
                     <div className="flex rounded-lg border border-white/[0.08] overflow-hidden">
                       <button
                         type="button"
-                        className="px-3 py-1 text-xs text-white/80 bg-white/[0.1] transition-colors"
+                        onClick={() => setLanguage('zh')}
+                        className={`px-3 py-1 text-xs transition-colors ${language === 'zh' ? 'text-white/80 bg-white/[0.1]' : 'text-white/30 hover:text-white/50'}`}
                       >
                         中文
                       </button>
                       <button
                         type="button"
-                        className="px-3 py-1 text-xs text-white/30 transition-colors hover:text-white/50"
+                        onClick={() => setLanguage('en')}
+                        className={`px-3 py-1 text-xs transition-colors ${language === 'en' ? 'text-white/80 bg-white/[0.1]' : 'text-white/30 hover:text-white/50'}`}
                       >
                         English
                       </button>
@@ -361,11 +365,11 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                 <>
                   <div className="mb-4 flex w-full items-center justify-between gap-3">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25">
-                      Third-Party API
+                      {t('settings_third_party')}
                     </p>
                     <button
                       onClick={addProvider}
-                      aria-label="Add provider"
+                      aria-label={t('settings_add_provider')}
                       className="flex h-8 w-8 items-center justify-center text-lg leading-none text-cyan-100/80 transition-colors hover:text-cyan-100"
                     >
                       +
@@ -375,7 +379,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                   <div className="mb-3 w-full">
                     {draftProviders.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] px-4 py-8 text-center">
-                        <p className="text-xs text-white/28">No third-party provider configured yet.</p>
+                        <p className="text-xs text-white/28">{t('settings_provider_empty')}</p>
                       </div>
                     ) : (
                       <div className="grid justify-items-start gap-x-4 gap-y-5 md:grid-cols-2">
@@ -392,7 +396,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                               <div className="flex h-8 items-center">
                                 <div className="flex h-8 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2">
                                   <span className={`text-[11px] ${provider.enabled ? 'text-emerald-300/75' : 'text-white/35'}`}>
-                                    {provider.enabled ? 'Enabled' : 'Disabled'}
+                                    {provider.enabled ? t('settings_provider_enabled') : t('settings_provider_disabled')}
                                   </span>
                                   <Toggle
                                     checked={provider.enabled}
@@ -406,31 +410,31 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                   disabled={provider.enabled}
                                   className="flex h-8 items-center rounded-lg border border-red-400/10 bg-red-400/[0.05] px-2.5 text-[11px] text-red-200/70 transition-colors hover:bg-red-400/[0.1] disabled:cursor-not-allowed disabled:opacity-35"
                                 >
-                                  Remove
+                                  {t('settings_remove')}
                                 </button>
                                 <button
                                   onClick={() => saveProviders(provider.name)}
                                   disabled={provider.enabled}
                                   className="flex h-8 items-center rounded-lg border border-cyan-400/15 bg-cyan-400/[0.08] px-2.5 text-[11px] text-cyan-100/80 transition-colors hover:bg-cyan-400/[0.12] disabled:cursor-not-allowed disabled:opacity-35"
                                 >
-                                  Save
+                                  {t('settings_save')}
                                 </button>
                               </div>
                             </div>
 
                             <div className="space-y-3">
-                              <SettingsField label="Provider Name">
+                              <SettingsField label={t('settings_provider_name')}>
                                 <input
                                   type="text"
                                   value={provider.name}
                                   onChange={(e) => updateProvider(provider.id, { name: e.target.value })}
-                                  placeholder="OpenAI-compatible provider"
+                                  placeholder={t('settings_provider_name_placeholder')}
                                   className={fieldClassName}
                                   disabled={provider.enabled}
                                 />
                               </SettingsField>
 
-                              <SettingsField label="Base URL">
+                              <SettingsField label={t('settings_base_url')}>
                                 <input
                                   type="text"
                                   value={provider.baseUrl}
@@ -441,7 +445,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                 />
                               </SettingsField>
 
-                              <SettingsField label="API Key">
+                              <SettingsField label={t('settings_api_key')}>
                                 <input
                                   type="password"
                                   value={provider.apiKey}
@@ -455,14 +459,14 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-2.5 py-3">
                                 <div className="mb-3 flex items-center justify-between gap-2">
                                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">
-                                    Models
+                                    {t('settings_models')}
                                   </p>
                                   <button
                                     onClick={() => addModel(provider.id)}
                                     disabled={provider.enabled}
                                     className="rounded-lg border border-white/[0.08] bg-white/[0.05] px-2.5 py-1 text-[11px] text-white/55 transition-colors hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-35"
                                   >
-                                    Add
+                                    {t('settings_add')}
                                   </button>
                                 </div>
 
@@ -481,7 +485,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                         type="text"
                                         value={item.model}
                                         onChange={(e) => updateModel(provider.id, item.id, e.target.value)}
-                                        placeholder="gpt-4o-mini"
+                                        placeholder={t('settings_model_placeholder')}
                                         className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap bg-transparent text-[11px] text-cyan-50/90 placeholder:text-cyan-50/30 outline-none disabled:cursor-not-allowed disabled:text-cyan-50/45"
                                         disabled={provider.enabled}
                                       />
@@ -489,7 +493,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                         onClick={() => removeModel(provider.id, item.id)}
                                         disabled={provider.enabled || provider.models.length <= 1}
                                         className="text-[11px] leading-none text-cyan-50/45 transition-colors hover:text-cyan-50/75 disabled:cursor-not-allowed disabled:opacity-30"
-                                        aria-label="Remove model"
+                                        aria-label={t('settings_remove')}
                                       >
                                         ×
                                       </button>
@@ -513,13 +517,13 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
               onClick={() => reset()}
               className="text-[11px] text-white/30 hover:text-white/50 transition-colors"
             >
-              Reset to Defaults
+              {t('settings_reset')}
             </button>
             <button
               onClick={onClose}
               className="rounded-lg bg-white/[0.08] px-4 py-1.5 text-xs text-white/70 hover:bg-white/[0.12] transition-colors"
             >
-              Done
+              {t('settings_done')}
             </button>
           </div>
         </div>
