@@ -1,0 +1,140 @@
+{
+  "name": "coide",
+  "version": "0.12.0",
+  "description": "A better Claude Code client",
+  "main": "./out/main/index.js",
+  "author": "Victor",
+  "homepage": "./",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "tsc && electron-vite build",
+    "preview": "electron-vite preview",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+    "package": "npm run build && electron-builder",
+    "package:win": "npm run build && electron-builder --win portable",
+    "package:win:installer": "npm run build && electron-builder --win nsis",
+    "package:win:all": "npm run build && electron-builder --win portable nsis",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepackage": "npm run clean",
+    "release": "npm test && npm version patch && npm run package && git push && git push --tags && npm run gh-release",
+    "release:minor": "npm test && npm version minor && npm run package && git push && git push --tags && npm run gh-release",
+    "release:major": "npm test && npm version major && npm run package && git push && git push --tags && npm run gh-release",
+    "gh-release": "gh release create v$(node -p \"require('./package.json').version\") --title v$(node -p \"require('./package.json').version\") --generate-notes dist/*.dmg dist/*-mac.zip"
+  },
+  "build": {
+    "appId": "com.coide",
+    "productName": "Coide",
+    "compression": "normal",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "npmRebuild": false,
+    "buildDependenciesFromSource": false,
+    "asarUnpack": [
+      "node_modules/node-pty/**/*.node",
+      "node_modules/node-pty/build/**",
+      "node_modules/node-pty/prebuilds/**"
+    ],
+    "files": [
+      "out/**/*",
+      "node_modules/**/*",
+      "!node_modules/**/{README,CHANGELOG,readme,changelog}*",
+      "!node_modules/**/{test,tests,__tests__,spec,specs}/**",
+      "!node_modules/**/*.{md,ts,map,flow}",
+      "!node_modules/**/{.eslintrc,.prettierrc,.babelrc}*",
+      "!node_modules/**/LICENSE*",
+      "!**/.claude/**",
+      "!README.md",
+      "!VISION.md",
+      "!electron-vite.config.ts",
+      "!tsconfig*",
+      "!src/**",
+      "!node_modules/@napi-rs/**"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "mac": {
+      "icon": "resources/icon.icns",
+      "electronLanguages": [
+        "en"
+      ],
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "extendInfo": {
+        "NSUserNotificationAlertStyle": "alert"
+      }
+    },
+    "win": {
+      "icon": "resources/icon.ico",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Coide",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "installerHeaderIcon": "resources/icon.ico"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.62",
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@tanstack/react-virtual": "^3.13.23",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "jszip": "^3.10.1",
+    "mammoth": "^1.11.0",
+    "node-pty": "^1.1.0",
+    "pdf-parse": "^2.4.5",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@electron-toolkit/eslint-config-ts": "^3.0.0",
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/rebuild": "^4.0.3",
+    "@monaco-editor/react": "^4.7.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.24",
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "jsdom": "^29.0.1",
+    "postcss": "^8.5.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^9.0.3",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^3.2.1",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vitest": "^4.1.1",
+    "zustand": "^5.0.3"
+  }
+}

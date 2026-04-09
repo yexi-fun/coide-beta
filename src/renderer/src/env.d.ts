@@ -1,0 +1,73 @@
+/// <reference types="vite/client" />
+
+type SkillInfo = {
+  name: string
+  description: string
+  scope: 'global' | 'project'
+  filePath: string
+}
+
+interface Window {
+  api: {
+    claude: {
+      query: (
+        prompt: string,
+        cwd: string,
+        sessionId: string | null,
+        coideSessionId: string,
+        worktreeName?: string
+      ) => Promise<{ sessionId: string | null } | { error: string }>
+      onEvent: (callback: (event: unknown) => void) => () => void
+      onPermission: (callback: (permission: unknown) => void) => () => void
+      respondPermission: (approved: boolean, coideSessionId?: string) => void
+      abort: (coideSessionId?: string) => void
+      saveImage: (base64: string, mediaType: string) => Promise<string>
+      checkBinary: (customPath?: string) => Promise<{ found: boolean; path: string; version?: string }>
+    }
+    dialog: {
+      pickFolder: () => Promise<string | null>
+      pickFile: () => Promise<string | null>
+      saveFile: (defaultName: string, content: string) => Promise<{ success?: boolean; canceled?: boolean; error?: string }>
+    }
+    system: {
+      homedir: () => Promise<string>
+    }
+    git: {
+      branch: (cwd: string) => Promise<string>
+      isRepo: (cwd: string) => Promise<boolean>
+      worktreeCreate: (cwd: string, branch: string) => Promise<{ path: string; branch: string; error?: string }>
+      worktreeMerge: (cwd: string, branch: string) => Promise<{ success: boolean; error?: string }>
+      worktreeRemove: (cwd: string, worktreePath: string) => Promise<{ success: boolean; error?: string }>
+    }
+    mcp: {
+      list: (cwd: string) => Promise<unknown[]>
+    }
+    skills: {
+      list: (cwd: string) => Promise<{ global: SkillInfo[]; project: SkillInfo[] }>
+      write: (scope: 'global' | 'project', name: string, content: string, cwd: string) => Promise<{ success?: boolean; error?: string }>
+      delete: (filePath: string) => Promise<{ success?: boolean; error?: string }>
+    }
+    settings: {
+      sync: (settings: Record<string, unknown>) => Promise<void>
+      activateProvider: (settings?: Record<string, unknown>) => Promise<void>
+      syncSelectedModel: (model: string) => Promise<void>
+      readClaudeProvider: () => Promise<{ baseUrl: string; apiKey: string; model: string } | null>
+    }
+    fs: {
+      readFile: (filePath: string) => Promise<{ content?: string; error?: string }>
+      revertFile: (filePath: string, originalContent: string | null) => Promise<{ success?: boolean; error?: string }>
+    }
+    hooks: {
+      read: (scope: 'global' | 'project', cwd: string) => Promise<{ hooks: Record<string, unknown> }>
+      write: (scope: 'global' | 'project', hooks: Record<string, unknown>, cwd: string) => Promise<{ success?: boolean; error?: string }>
+    }
+    terminal: {
+      spawn: (id: string, cwd: string) => Promise<{ pid: number }>
+      write: (id: string, data: string) => Promise<void>
+      resize: (id: string, cols: number, rows: number) => Promise<void>
+      kill: (id: string) => Promise<void>
+      onData: (callback: (event: { id: string; data: string }) => void) => () => void
+      onExit: (callback: (event: { id: string; exitCode: number }) => void) => () => void
+    }
+  }
+}
