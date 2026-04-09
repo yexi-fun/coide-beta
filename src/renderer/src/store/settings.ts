@@ -4,18 +4,18 @@ import { type CoideSettings, DEFAULT_SETTINGS, type ThirdPartyProviderSettings }
 
 function normalizeProviders(providers: ThirdPartyProviderSettings[] = []): ThirdPartyProviderSettings[] {
   const merged = providers.map((provider) => ({
-    enabled: true,
+    enabled: false,
     ...provider
   }))
 
   if (merged.length === 0) return merged
 
   const enabledIndex = merged.findIndex((provider) => provider.enabled)
-  const activeIndex = enabledIndex >= 0 ? enabledIndex : 0
+  if (enabledIndex < 0) return merged
 
   return merged.map((provider, index) => ({
     ...provider,
-    enabled: index === activeIndex
+    enabled: index === enabledIndex
   }))
 }
 

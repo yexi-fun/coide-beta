@@ -99,16 +99,9 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
     }
 
     if (partial.enabled === false) {
-      if (draftProviders.length <= 1) return
-
-      let replacementUsed = false
       const nextProviders = draftProviders.map((provider) => {
         if (provider.id === providerId) return { ...provider, enabled: false }
-        if (!replacementUsed) {
-          replacementUsed = true
-          return { ...provider, enabled: true }
-        }
-        return { ...provider, enabled: false }
+        return provider
       })
       setDraftProviders(nextProviders)
       activateProviders(nextProviders)
@@ -124,12 +117,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
 
   const removeProvider = (providerId: string): void => {
     const remainingProviders = draftProviders.filter((provider) => provider.id !== providerId)
-    setDraftProviders(
-      remainingProviders.map((provider, index) => ({
-        ...provider,
-        enabled: remainingProviders.some((item) => item.enabled) ? provider.enabled : index === 0
-      }))
-    )
+    setDraftProviders(remainingProviders)
   }
 
   const addModel = (providerId: string): void => {
@@ -220,7 +208,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0))]">
-          <div className="border-b border-white/[0.06] px-6 py-5">
+          <div className="border-b border-white/[0.06] px-5 py-4">
             <div className="mx-auto flex w-full max-w-[680px] items-center justify-between gap-4">
               <h3 className="text-[22px] font-semibold tracking-tight text-white/92">
                 {activeSection === 'essential'
@@ -240,7 +228,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
             </div>
           </div>
 
-          <div className="min-w-0 flex-1 overflow-y-auto px-6 py-6">
+          <div className="min-w-0 flex-1 overflow-y-auto px-5 py-5">
             <div className="mx-auto w-full max-w-[680px]">
               {activeSection === 'essential' && (
                 <>
@@ -394,7 +382,6 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                   </span>
                                   <Toggle
                                     checked={provider.enabled}
-                                    disabled={provider.enabled}
                                     onChange={(v) => updateProvider(provider.id, { enabled: v })}
                                   />
                                 </div>
@@ -451,7 +438,7 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                 />
                               </SettingsField>
 
-                              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                              <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-2.5 py-3">
                                 <div className="mb-3 flex items-center justify-between gap-2">
                                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/35">
                                     Models
@@ -465,25 +452,29 @@ export default function SettingsModal({ onClose }: { onClose: () => void }): Rea
                                   </button>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex flex-wrap gap-1.5 px-0.5">
                                   {provider.models.map((item) => (
                                     <div
                                       key={item.id}
-                                      className="inline-flex h-9 max-w-full items-center gap-2 rounded-full border border-cyan-300/[0.14] bg-cyan-300/[0.06] px-3"
+                                      style={{
+                                        minWidth: 'calc((100% - 0.75rem) / 3)',
+                                        width: 'fit-content',
+                                        maxWidth: 'calc((100% - 0.375rem) / 2)'
+                                      }}
+                                      className="inline-flex h-8 items-center gap-1.5 overflow-hidden rounded-full border border-cyan-300/[0.14] bg-cyan-300/[0.06] px-2.5"
                                     >
                                       <input
                                         type="text"
                                         value={item.model}
                                         onChange={(e) => updateModel(provider.id, item.id, e.target.value)}
                                         placeholder="gpt-4o-mini"
-                                        style={{ width: `${Math.max(item.model.trim().length || 0, 8)}ch` }}
-                                        className="w-auto min-w-0 max-w-[220px] bg-transparent text-xs text-cyan-50/90 placeholder:text-cyan-50/30 outline-none disabled:cursor-not-allowed disabled:text-cyan-50/45"
+                                        className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap bg-transparent text-[11px] text-cyan-50/90 placeholder:text-cyan-50/30 outline-none disabled:cursor-not-allowed disabled:text-cyan-50/45"
                                         disabled={provider.enabled}
                                       />
                                       <button
                                         onClick={() => removeModel(provider.id, item.id)}
                                         disabled={provider.enabled || provider.models.length <= 1}
-                                        className="text-[12px] leading-none text-cyan-50/45 transition-colors hover:text-cyan-50/75 disabled:cursor-not-allowed disabled:opacity-30"
+                                        className="text-[11px] leading-none text-cyan-50/45 transition-colors hover:text-cyan-50/75 disabled:cursor-not-allowed disabled:opacity-30"
                                         aria-label="Remove model"
                                       >
                                         ×
